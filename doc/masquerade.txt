@@ -1,0 +1,259 @@
+*masquerade.txt*	Tools to edit multiple selections
+						Last change:21-Jan-2018.
+
+Author  : machakann <https://github.com/machakann>
+License : MIT license
+Copyright (c) 2017 Masaaki Nakamura {{{
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+}}}
+
+Requirement:
+	Vim 8.0 or higher
+	|multiselect.vim|	<https://github.com/machakann/vim-multiselect>
+
+==============================================================================
+INDEX					*masquerade-index*
+
+INTRODUCTION				|masquerade-introduction|
+KEYMAPPINGS				|masquerade-keymappings|
+
+==============================================================================
+INTRODUCTION				*masquerade-introduction*
+
+*masquerade.vim* provides wrapped operators to work with |multiselect.vim|.
+These operators edit texts as repeating sets of visual selection and calling
+an original |operator| for each multi-selected regions.
+
+This plugin prepares the following wrapped operators. Strictly speaking, some
+of them are not operators but you may found them useful when you try.
+
+	original	wrapped operator
+
+	y		<Plug>(masquerade-y)
+	Y		<Plug>(masquerade-Y)
+
+	d		<Plug>(masquerade-d)
+	D		<Plug>(masquerade-D)
+	x		<Plug>(masquerade-x)
+	X		<Plug>(masquerade-X)
+
+	c		<Plug>(masquerade-c)
+	C		<Plug>(masquerade-C)
+	s		<Plug>(masquerade-s)
+	S		<Plug>(masquerade-S)
+
+	p		<Plug>(masquerade-p)
+	P		<Plug>(masquerade-P)
+	gp		<Plug>(masquerade-gp)
+	gP		<Plug>(masquerade-gP)
+
+	i		<Plug>(masquerade-i)
+	a		<Plug>(masquerade-a)
+
+	<		<Plug>(masquerade-<)
+	>		<Plug>(masquerade->)
+
+	g~		<Plug>(masquerade-g~)
+	~		<Plug>(masquerade-~)
+	gu		<Plug>(masquerade-gu)
+	gU		<Plug>(masquerade-gU)
+	g?		<Plug>(masquerade-g?)
+	gq		<Plug>(masquerade-gq)
+	gw		<Plug>(masquerade-gw)
+	=		<Plug>(masquerade-=)
+
+	!		<Plug>(masquerade-!)
+
+==============================================================================
+KEYMAPPINGS				*masquerade-keymappings*
+
+Those keymappings edit all multi-selection in |Normal| mode, while edit only
+the texts inside visual selection in |Visual| mode. The visual selection works
+like a filter. In principle, all the other selections would be unselected
+after an action but only |<Plug>(masquerade-Y)|, |<Plug>(masquerade-D)|,
+|<Plug>(masquerade-X)|, |<Plug>(masquerade-C)|, |<Plug>(masquerade-S)|
+are the exceptions.
+
+
+
+["x]<Plug>(masquerade-y)		*<Plug>(masquerade-y)*
+["x]<Plug>(masquerade-Y)		*<Plug>(masquerade-Y)*
+	These keymappings yanks multi-selected regions. If those regions are
+	only |characterwise| and |blockwise-visual| selections, the yanked
+	texts are assembled into a blockwise text to save the given register.
+	If at least one |linewise| text is included, those texts are saved as
+	a |linewise| text. If there are no selections in the current buffer,
+	it fallbacks to the original command. See |y| and |Y|.
+>
+		map d <Plug>(masquerade-y)
+		nmap Y <Plug>(masquerade-Y)
+		xmap Y <Plug>(masquerade-Y)
+<
+
+
+["x]<Plug>(masquerade-d)		*<Plug>(masquerade-d)*
+["x]<Plug>(masquerade-D)		*<Plug>(masquerade-D)*
+["x]<Plug>(masquerade-x)		*<Plug>(masquerade-x)*
+["x]<Plug>(masquerade-X)		*<Plug>(masquerade-X)*
+	These keymappings deletes multi-selected regions. If there are no
+	selections in the current buffer, it fallbacks to the original
+	command. See |d|, |D|, |x| and |X|.
+>
+		map d <Plug>(masquerade-d)
+		nmap D <Plug>(masquerade-D)
+		xmap D <Plug>(masquerade-D)
+		nmap x <Plug>(masquerade-x)
+		xmap x <Plug>(masquerade-x)
+		nmap X <Plug>(masquerade-X)
+		xmap X <Plug>(masquerade-X)
+<
+	The yanked texts are handled like |<Plug>(masquerade-y)|.
+
+
+
+["x]<Plug>(masquerade-c)		*<Plug>(masquerade-c)*
+["x]<Plug>(masquerade-C)		*<Plug>(masquerade-C)*
+["x]<Plug>(masquerade-s)		*<Plug>(masquerade-s)*
+["x]<Plug>(masquerade-S)		*<Plug>(masquerade-S)*
+	These keymappings change texts in multi-selected regions. If there are
+	no selections in the current buffer, it fallbacks to the original
+	command. The cursor will be moved to the last one in the all items.
+	 See |c|, |C|, |s| and |S|.
+>
+		map c <Plug>(masquerade-c)
+		nmap C <Plug>(masquerade-C)
+		xmap C <Plug>(masquerade-C)
+		nmap s <Plug>(masquerade-s)
+		xmap s <Plug>(masquerade-s)
+<
+	The yanked texts are handled like |<Plug>(masquerade-y)|.
+
+
+
+["x]<Plug>(masquerade-p)		*<Plug>(masquerade-p)*
+["x]<Plug>(masquerade-P)		*<Plug>(masquerade-P)*
+["x]<Plug>(masquerade-gp)		*<Plug>(masquerade-gp)*
+["x]<Plug>(masquerade-gP)		*<Plug>(masquerade-gP)*
+	These keymappings paste a text into multi-selected regions. If there
+	are no selections in the current buffer, it fallbacks to the original
+	command. See |p|, |P|, |gp| and |gP|.
+>
+		nmap p <Plug>(masquerade-p)
+		xmap p <Plug>(masquerade-p)
+		nmap P <Plug>(masquerade-P)
+		xmap P <Plug>(masquerade-P)
+		nmap gp <Plug>(masquerade-p)
+		xmap gp <Plug>(masquerade-p)
+		nmap [P <Plug>(masquerade-[P)
+		xmap [P <Plug>(masquerade-[P)
+		nmap ]P <Plug>(masquerade-]P)
+		xmap ]P <Plug>(masquerade-]P)
+<
+	As different from the original commands, the given register is
+	restored after all operation.
+
+
+
+[count]<Plug>(masquerade-i)		*<Plug>(masquerade-i)*
+[count]<Plug>(masquerade-a)		*<Plug>(masquerade-a)*
+	These keymappings insert a text into the head/tail of multi-selected
+	regions. If there are no selections in the current buffer, it
+	fallbacks to the original command. See |i| and |a|.
+>
+		nmap i <Plug>(masquerade-i)
+		xmap I <Plug>(masquerade-i)
+		nmap a <Plug>(masquerade-a)
+		xmap A <Plug>(masquerade-a)
+<
+
+
+[count]<Plug>(masquerade-<)		*<Plug>(masquerade-<)*
+[count]<Plug>(masquerade->)		*<Plug>(masquerade->)*
+	These keymappings dedent/indent lines of multi-selected regions. If
+	there are no selections in the current buffer, it fallbacks to the
+	original command. See |<| and |>|.
+>
+		map < <Plug>(masquerade-<)
+		map > <Plug>(masquerade->)
+<
+
+
+<Plug>(masquerade-g~)			*<Plug>(masquerade-g~)*
+<Plug>(masquerade-~)			*<Plug>(masquerade-~)*
+	These keymappings switch case of multi-selected regions. If there are
+	no selections in the current buffer, it fallbacks to the original
+	command. See |g~| and |~|.
+>
+		map g~ <Plug>(masquerade-g~)
+		map ~ <Plug>(masquerade-~)
+<
+
+
+<Plug>(masquerade-gu)			*<Plug>(masquerade-gu)*
+<Plug>(masquerade-gU)			*<Plug>(masquerade-gU)*
+	These keymappings make multi-selected regions lower/upper case.
+	If there are no selections in the current buffer, it fallbacks to the
+	original command. See |gu| and |gU|.
+>
+		map gu <Plug>(masquerade-gu)
+		map gU <Plug>(masquerade-gU)
+<
+
+
+<Plug>(masquerade-g?)			*<Plug>(masquerade-g?)*
+	This keymapping Rot13 encodes multi-selected regions. If there are no
+	selections in the current buffer, it fallbacks to the original
+	command. See |g?|.
+>
+		map g? <Plug>(masquerade-g?)
+<
+
+
+<Plug>(masquerade-gq)			*<Plug>(masquerade-gq)*
+<Plug>(masquerade-gw)			*<Plug>(masquerade-gw)*
+	This keymapping formats lines of multi-selected regions. If there are
+	no selections in the current buffer, it fallbacks to the original
+	command. See |gq| and |gw|.
+>
+		map gq <Plug>(masquerade-gq)
+		map gw <Plug>(masquerade-gw)
+<
+
+
+<Plug>(masquerade-=)			*<Plug>(masquerade-=)*
+	This keymapping filters lines of multi-selected regions through the
+	external program given with 'equalprg'. If there are no selections in
+	the current buffer, it fallbacks to the original command. See |=|.
+>
+		map = <Plug>(masquerade-=)
+<
+
+
+<Plug>(masquerade-!){filter}			*<Plug>(masquerade-!)*
+	This keymapping filters lines of multi-selected regions through the
+	external program {filter}. If there are no selections in the current
+	buffer, it fallbacks to the original command. See |!|.
+>
+		map ! <Plug>(masquerade-!)
+<
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:noet::fdl=0:fen:fdm=marker:noet:

@@ -1,0 +1,10 @@
+execute 'set runtimepath+=' . expand('<sfile>:p:h:h')
+execute 'set runtimepath+=' . expand('<sfile>:p:h:h:h') . '/vim-multiselect'
+runtime! plugin/*.vim
+set noswapfile
+
+let g:assert = themis#helper('assert')
+call themis#helper('command').with(g:assert)
+" vim:set foldmethod=marker:
+" vim:set commentstring="%s:
+" vim:set noet ts=4 sw=4 sts=-1:
