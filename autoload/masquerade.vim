@@ -591,10 +591,9 @@ function! s:MasqueradeInsert.update() abort "{{{
 	call s:ClassSys.super(self, 'MasqueradeEditor').update()
 endfunction "}}}
 function! s:MasqueradeInsert.execute(itemlist) abort "{{{
-	if empty(@.)
-		return
+	if self.dotrepeat is s:FALSE
+		let self.insertion = @.
 	endif
-	let self.insertion = @.
 	call s:ClassSys.super(self, 'MasqueradeEditor').execute(a:itemlist)
 endfunction "}}}
 function! s:setautocmd() abort "{{{
