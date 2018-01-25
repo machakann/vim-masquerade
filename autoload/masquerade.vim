@@ -2,16 +2,19 @@
 " TODO: highlight insertions
 let s:ClassSys = masquerade#ClassSys#_import()
 let s:Multiselect = multiselect#import()
+let s:timer = s:Multiselect.TimerTask()
 let s:ms = s:Multiselect.load()
 let s:shiftenv = s:Multiselect.shiftenv
 let s:restoreenv = s:Multiselect.restoreenv
 let s:inorderof = s:Multiselect.inorderof
 let s:str2type = s:Multiselect.str2type
 let s:isextended = s:Multiselect.isextended
+
 let s:TRUE = 1
 let s:FALSE = 0
 let s:MAXCOL = 2147483647
 let s:NULLPOS = [0, 0, 0, 0]
+let s:HIDURATION = 300
 function! s:SID() abort
 	return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
 endfunction
@@ -23,6 +26,7 @@ let s:GV = s:SID . '(gv)'
 let s:DOUBLEQUOTE = s:SID . '(doublequote)'
 
 let g:masquerade#keepunedited = !!get(g:, 'masquerade#keepunedited', s:FALSE)
+let g:masquerade#highlight = get(g:, 'masquerade#keepunedited', s:HIDURATION)
 
 let g:masquerade#__CURRENT__ = {}
 let s:OPERATORFUNC = 'masquerade#operatorfunc'
@@ -55,6 +59,23 @@ function! s:start(mode, msqrd) abort "{{{
 	return keyseq
 endfunction "}}}
 
+" highlight group{{{
+let s:HIGROUP = 'MasqueradeChange'
+function! s:default_highlight() abort
+	if hlexists('DiffChange')
+		highlight default link MasqueradeChange DiffChange
+	else
+		highlight default MasqueradeChange cterm=reverse gui=reverse
+	endif
+endfunction
+call s:default_highlight()
+
+augroup masquerade-highlgiht
+	autocmd!
+	autocmd ColorScheme * call s:default_highlight()
+augroup END
+"}}}
+
 function! masquerade#edit(mode, cmd, ...) abort "{{{
 	let options = {
 		\ 'keepunedited': g:masquerade#keepunedited,
@@ -80,6 +101,7 @@ let s:MasqueradeEditor = {
 	\	'filter': {},
 	\	'curpos': copy(s:NULLPOS),
 	\	'view': {},
+	\	'highlight': s:HIDURATION,
 	\	'noremap': s:TRUE,
 	\	'keepcurpos': s:TRUE,
 	\	'keepunedited': s:FALSE,
@@ -88,6 +110,7 @@ let s:MasqueradeEditor = {
 	\	'sort': s:TRUE,
 	\	'shiftenv': s:TRUE,
 	\	'dotrepeat': s:FALSE,
+	\	'_hiitemlist': [],
 	\	}
 function! s:MasqueradeEditor(mode, cmd) abort "{{{
 	let masquerade = deepcopy(s:MasqueradeEditor)
@@ -101,6 +124,7 @@ function! s:MasqueradeEditor.initialize(...) abort "{{{
 	let self.register = v:register
 	let self.curpos = getpos('.')
 	let self.view = winsaveview()
+	call self._setopt(options, 'highlight')
 	call self._setboolopt(options, 'noremap')
 	call self._setboolopt(options, 'keepcurpos')
 	call self._setboolopt(options, 'keepunedited')
@@ -138,7 +162,7 @@ function! s:MasqueradeEditor.itemlist() abort "{{{
 	if !empty(self.filter)
 		let itemlist = s:ms.emit_inside(self.filter)
 		if self.keepunedited is s:TRUE
-			call s:ms.event.TextChanged.skip(1)
+			call s:ms.Event('TextChanged').skip(1)
 		else
 			call s:ms.uncheckall()
 		endif
@@ -152,26 +176,48 @@ function! s:MasqueradeEditor.execute(itemlist) abort "{{{
 	if empty(a:itemlist)
 		return
 	endif
+
 	if self.sort is s:TRUE
 		call s:ms.sort(a:itemlist)
 	endif
 
 	let keyseq = self._buildkeyseq()
-	if self.keepcurpos
-		for item in reverse(a:itemlist)
-			let change = self.do(item, keyseq)
+	for item in reverse(a:itemlist)
+		let [change, hiitem] = self.do(item, keyseq)
+
+		if self.keepcurpos
 			call s:shiftcurpos(self.curpos, change)
-		endfor
-	else
-		for item in reverse(a:itemlist)
-			call self.do(item, keyseq)
-		endfor
-	endif
+		endif
+
+		if self.highlight > 0
+			call s:shiftitems(self._hiitemlist, change)
+			if !empty(hiitem)
+				call add(self._hiitemlist, hiitem)
+			endif
+		endif
+	endfor
+	call self.show()
 endfunction "}}}
 function! s:MasqueradeEditor.do(item, keyseq, ...) abort "{{{
 	call a:item.select()
 	execute a:keyseq
-	return {}
+	let hiitem = self._hiitem(a:item)
+	return [{}, hiitem]
+endfunction "}}}
+function! s:MasqueradeEditor.show() abort "{{{
+	let duration = self.highlight
+	if duration <= 0
+		return
+	endif
+
+	call s:timer.initialize()
+	for hiitem in self._hiitemlist
+		call hiitem.show(s:HIGROUP)
+		call s:timer.call(hiitem.quench, [], hiitem)
+	endfor
+	call s:timer.start(duration)
+	call s:ms.Event('InsertEnter').call(s:timer.trigger, [], s:timer).repeat(1)
+	call s:ms.Event('TextChanged').call(s:timer.trigger, [], s:timer).repeat(1).skip(1)
 endfunction "}}}
 function! s:MasqueradeEditor.finish(env) abort "{{{
 	if !empty(a:env)
@@ -181,6 +227,7 @@ function! s:MasqueradeEditor.finish(env) abort "{{{
 		call winrestview(self.view)
 		call setpos('.', self.curpos)
 	endif
+	call filter(self._hiitemlist, 0)
 	let self.dotrepeat = s:TRUE
 endfunction "}}}
 
@@ -242,9 +289,25 @@ function! s:MasqueradeEditor._buildkeyseq(...) abort "{{{
 
 	return printf('%s%s%s%s%s', normal, gv, countstr, register, cmd)
 endfunction "}}}
+function! s:MasqueradeEditor._hiitem(item) abort "{{{
+	if self.highlight > 0
+		let head = getpos("'[")
+		let tail = getpos("']")
+		if s:inorderof(head, tail) || head == tail
+			let hiitem = s:Multiselect.Item(head, tail, a:item.type, a:item.extended)
+			return hiitem
+		endif
+	endif
+	return {}
+endfunction "}}}
 function! s:MasqueradeEditor._setboolopt(options, name) abort "{{{
 	if has_key(a:options, a:name)
 		let self[a:name] = !!a:options[a:name]
+	endif
+endfunction "}}}
+function! s:MasqueradeEditor._setopt(options, name) abort "{{{
+	if has_key(a:options, a:name)
+		let self[a:name] = a:options[a:name]
 	endif
 endfunction "}}}
 
@@ -322,6 +385,12 @@ function! s:shiftcurpos(curpos, change) abort "{{{
 	endif
 	return a:change.apply(a:curpos)
 endfunction "}}}
+function! s:shiftitems(hiitemlist, change) abort "{{{
+	if empty(a:hiitemlist) || empty(a:change)
+		return a:hiitemlist
+	endif
+	return map(a:hiitemlist, 'a:change.apply(v:val)')
+endfunction "}}}
 "}}}
 
 " y
@@ -350,6 +419,8 @@ function! s:MasqueradeYank.do(item, keyseq) abort "{{{
 	execute a:keyseq
 	let a:item.textlist = getreg(self.register, 0, 1)
 	call add(self.yankedlist, a:item)
+	let hiitem = self._hiitem(a:item)
+	return [{}, hiitem]
 endfunction "}}}
 function! s:MasqueradeYank.finish(env) abort "{{{
 	call s:ms.sort(self.yankedlist)
@@ -390,6 +461,7 @@ endfunction "}}}
 " MasqueradeD class{{{
 let s:MasqueradeD = {
 	\	'__CLASS__': 'MasqueradeD',
+	\	'highlight': 0,
 	\	'keepcurpos': s:TRUE,
 	\	}
 function! s:MasqueradeD(mode, cmd) abort "{{{
@@ -400,8 +472,8 @@ endfunction "}}}
 function! s:MasqueradeD.do(item, keyseq) dict abort "{{{
 	let change = s:Multiselect.Change()
 	call change.beforedelete(a:item)
-	call s:ClassSys.super(self, 'MasqueradeYank').do(a:item, a:keyseq)
-	return change
+	let [_, hiitem] = s:ClassSys.super(self, 'MasqueradeYank').do(a:item, a:keyseq)
+	return [change, hiitem]
 endfunction "}}}
 "}}}
 
@@ -432,13 +504,24 @@ endfunction "}}}
 function! s:MasqueradeExclamation.do(item, _) dict abort "{{{
 	call a:item.select()
 	execute printf("normal! !%s\<CR>", self.shellcmd)
-	return {}
+	let hiitem = self._hiitem(a:item)
+	return [{}, hiitem]
 endfunction "}}}
 function! s:MasqueradeExclamation.finish(env) dict abort "{{{
 	if self.dotrepeat is s:FALSE
 		call histadd('cmd', '!' . self.shellcmd)
 	endif
 	call s:ClassSys.super(self, 'MasqueradeEditor').finish(a:env)
+endfunction "}}}
+function! s:MasqueradeExclamation._hiitem(item) abort "{{{
+	if self.highlight > 0
+		let head = line("'[")
+		let tail = line("']")
+		let hiitem = s:Multiselect.Item(head, tail, 'line')
+	else
+		let hiitem = {}
+	endif
+	return hiitem
 endfunction "}}}
 function! s:setfiltercmdhist() abort "{{{
 	let inputlist = s:getcmdhist('input')
@@ -507,7 +590,8 @@ function! s:MasqueradeP.do(item, _) abort "{{{
 	normal! ""p
 	let type_addition = self.register_contents.pastetext[2]
 	call change.afterinsert(getpos("'["), getpos("']"), type_addition)
-	return change
+	let hiitem = self._hiitem(a:item)
+	return [change, hiitem]
 endfunction "}}}
 function! s:MasqueradeP.finish(env) abort "{{{
 	call s:setregister(self.register_anonymous.saved)
@@ -538,7 +622,7 @@ function! s:masquerade_insert(Constructor, mode, cmd, ...) abort "{{{
 	endif
 	let msqrd.firsttarget = msqrd.lastitem()
 	call s:setautocmd()
-	call s:ms.event.InsertEnter.skip(1)
+	call s:ms.Event('InsertEnter').skip(1)
 	call s:start(a:mode, msqrd)
 	call call('feedkeys', msqrd.executekeys())
 	call feedkeys(s:AIM, 'im')
@@ -596,6 +680,19 @@ function! s:MasqueradeInsert.execute(itemlist) abort "{{{
 	endif
 	call s:ClassSys.super(self, 'MasqueradeEditor').execute(a:itemlist)
 endfunction "}}}
+function! s:MasqueradeInsert._hiitem(item) abort "{{{
+	if self.highlight > 0
+		let head = getpos("'[")
+		let tail = getpos("']")
+		if a:item.type isnot# 'line'
+			let tail[2] -= 1
+		endif
+		if s:inorderof(head, tail) || head == tail
+			return s:Multiselect.Item(head, tail, a:item.type, a:item.extended)
+		endif
+	endif
+	return {}
+endfunction "}}}
 function! s:setautocmd() abort "{{{
 	augroup copycat-keymap
 		autocmd!
@@ -616,6 +713,10 @@ function! s:InsertLeave() abort "{{{
 	endif
 	if msqrd.useregister
 		let register = msqrd.register
+	endif
+	let hiitem = msqrd._hiitem(msqrd.firsttarget)
+	if !empty(hiitem)
+		call add(msqrd._hiitemlist, hiitem)
 	endif
 	call feedkeys(countstr . 'g@l', 'in')
 	call s:clearautocmd()
@@ -643,7 +744,8 @@ function! s:MasqueradeI.do(item, keyseq) abort "{{{
 		normal! ^
 	endif
 	execute a:keyseq . self.insertion
-	return {}
+	let hiitem = self._hiitem(a:item)
+	return [{}, hiitem]
 endfunction "}}}
 "}}}
 " MasqueradeA class{{{
@@ -668,7 +770,8 @@ function! s:MasqueradeA.do(item, keyseq) abort "{{{
 		normal! $
 	endif
 	execute a:keyseq . self.insertion
-	return {}
+	let hiitem = self._hiitem(a:item)
+	return [{}, hiitem]
 endfunction "}}}
 "}}}
 " MasqueradeC class{{{
@@ -693,9 +796,11 @@ function! s:MasqueradeC.fallbackkeys() abort "{{{
 	return [keyseq, flag]
 endfunction "}}}
 function! s:MasqueradeC.update() abort "{{{
-	let firsttarget = self.firsttarget
-	let firsttarget.textlist = getreg(self.register, 0, 1)
-	call add(self.yankedlist, firsttarget)
+	if self.dotrepeat is s:FALSE
+		let firsttarget = self.firsttarget
+		let firsttarget.textlist = getreg(self.register, 0, 1)
+		call add(self.yankedlist, firsttarget)
+	endif
 	call s:ClassSys.super(self, 'MasqueradeInsert').update()
 endfunction "}}}
 function! s:MasqueradeC.do(item, keyseq) abort "{{{
@@ -704,7 +809,8 @@ function! s:MasqueradeC.do(item, keyseq) abort "{{{
 	let keyseq = a:keyseq . self.insertion
 	call s:ClassSys.super(self, 'MasqueradeYank').do(a:item, keyseq)
 	call change.afterinsert(getpos("'["), getpos("']"), 'char')
-	return change
+	let hiitem = self._hiitem(a:item)
+	return [change, hiitem]
 endfunction "}}}
 "}}}
 function! s:aim() abort "{{{

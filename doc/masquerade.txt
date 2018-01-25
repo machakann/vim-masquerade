@@ -1,5 +1,5 @@
 *masquerade.txt*	Tools to edit multiple selections
-						Last change:21-Jan-2018.
+						Last change:25-Jan-2018.
 
 Author  : machakann <https://github.com/machakann>
 License : MIT license
@@ -33,6 +33,8 @@ INDEX					*masquerade-index*
 
 INTRODUCTION				|masquerade-introduction|
 KEYMAPPINGS				|masquerade-keymappings|
+HIGHLIGHT GROUPS			|masquerade-higroups|
+OPTIONS					|masquerade-options|
 
 ==============================================================================
 INTRODUCTION				*masquerade-introduction*
@@ -253,6 +255,31 @@ are the exceptions.
 >
 		map ! <Plug>(masquerade-!)
 <
+
+
+==============================================================================
+HIGHLIGHT GROUPS			*masquerade-higroups*
+
+MasqueradeChange			*hl-MasqueradeChange*
+	This highlight group is applied for changed texts. It is linked to
+	|hl-DiffChange| in default. >
+		highlight default link MasqueradeChange DiffChange
+<
+	The highlight color can be optimized by |:highlight| command. >
+		highlight MultiselectItem ctermfg=White ctermbg=Red
+		                               \ guifg=White   guibg=Red
+<
+
+==============================================================================
+OPTIONS					*masquerade-options*
+
+g:masquerade#highlight			*g:masquerade#highlight*
+	This option controls the highlight of changed texts. It should be a
+	highlight duration in millisecond. >
+		let g:masquerade#highlight = 300
+<
+	The default value is 300. If it is less than 0, the changed texts will
+	not be highlighted.
 
 
 ==============================================================================
