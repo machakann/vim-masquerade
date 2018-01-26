@@ -1,5 +1,5 @@
 *masquerade.txt*	Tools to edit multiple selections
-						Last change:25-Jan-2018.
+						Last change:26-Jan-2018.
 
 Author  : machakann <https://github.com/machakann>
 License : MIT license
@@ -147,6 +147,8 @@ are the exceptions.
 <
 	The yanked texts are handled like |<Plug>(masquerade-y)|.
 
+	NOTE: These commands move cursor to the last multiselect item.
+
 
 
 ["x]<Plug>(masquerade-p)		*<Plug>(masquerade-p)*
@@ -178,6 +180,8 @@ are the exceptions.
 	These keymappings insert a text into the head/tail of multi-selected
 	regions. If there are no selections in the current buffer, it
 	fallbacks to the original command. See |i| and |a|.
+
+	NOTE: These commands move cursor to the last multiselect item.
 >
 		nmap i <Plug>(masquerade-i)
 		xmap I <Plug>(masquerade-i)
