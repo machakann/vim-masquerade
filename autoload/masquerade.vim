@@ -25,7 +25,7 @@ let s:GV = s:SID . '(gv)'
 let s:DOUBLEQUOTE = s:SID . '(doublequote)'
 
 let g:masquerade#keepunedited = !!get(g:, 'masquerade#keepunedited', s:FALSE)
-let g:masquerade#highlight = get(g:, 'masquerade#keepunedited', s:HIDURATION)
+let g:masquerade#highlight = get(g:, 'masquerade#highlight', s:HIDURATION)
 
 let g:masquerade#__CURRENT__ = {}
 let s:OPERATORFUNC = 'masquerade#operatorfunc'
@@ -78,6 +78,7 @@ augroup END
 function! masquerade#edit(mode, cmd, ...) abort "{{{
 	let options = {
 		\ 'keepunedited': g:masquerade#keepunedited,
+		\ 'highlight': g:masquerade#highlight,
 		\ }
 	call extend(options, get(a:000, 0, {}), 'force')
 	if s:ms.isempty()
