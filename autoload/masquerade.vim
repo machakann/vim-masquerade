@@ -1,5 +1,4 @@
 " masquerade.vim - Tools to edit multiple selections
-" TODO: highlight insertions
 let s:ClassSys = masquerade#ClassSys#_import()
 let s:Multiselect = multiselect#import()
 let s:timer = s:Multiselect.TimerTask()
@@ -183,7 +182,7 @@ function! s:MasqueradeEditor.execute(itemlist) abort "{{{
 
 	let keyseq = self._buildkeyseq()
 	for item in reverse(a:itemlist)
-		let [change, hiitem] = self.do(item, keyseq)
+		let [change, hiitemlist] = self.do(item, keyseq)
 
 		if self.keepcurpos
 			call s:shiftcurpos(self.curpos, change)
@@ -191,8 +190,8 @@ function! s:MasqueradeEditor.execute(itemlist) abort "{{{
 
 		if self.highlight > 0
 			call s:shiftitems(self._hiitemlist, change)
-			if !empty(hiitem)
-				call add(self._hiitemlist, hiitem)
+			if !empty(hiitemlist)
+				call extend(self._hiitemlist, hiitemlist)
 			endif
 		endif
 	endfor
@@ -202,7 +201,7 @@ function! s:MasqueradeEditor.do(item, keyseq, ...) abort "{{{
 	call a:item.select()
 	execute a:keyseq
 	let hiitem = self._hiitem(a:item)
-	return [{}, hiitem]
+	return [{}, [hiitem]]
 endfunction "}}}
 function! s:MasqueradeEditor.show() abort "{{{
 	let duration = self.highlight
@@ -420,7 +419,7 @@ function! s:MasqueradeYank.do(item, keyseq) abort "{{{
 	let a:item.textlist = getreg(self.register, 0, 1)
 	call add(self.yankedlist, a:item)
 	let hiitem = self._hiitem(a:item)
-	return [{}, hiitem]
+	return [{}, [hiitem]]
 endfunction "}}}
 function! s:MasqueradeYank.finish(env) abort "{{{
 	call s:ms.sort(self.yankedlist)
@@ -473,7 +472,7 @@ function! s:MasqueradeD.do(item, keyseq) dict abort "{{{
 	let change = s:Multiselect.Change()
 	call change.beforedelete(a:item)
 	let [_, hiitem] = s:ClassSys.super(self, 'MasqueradeYank').do(a:item, a:keyseq)
-	return [change, hiitem]
+	return [change, [hiitem]]
 endfunction "}}}
 "}}}
 
@@ -505,7 +504,7 @@ function! s:MasqueradeExclamation.do(item, _) dict abort "{{{
 	call a:item.select()
 	execute printf("normal! !%s\<CR>", self.shellcmd)
 	let hiitem = self._hiitem(a:item)
-	return [{}, hiitem]
+	return [{}, [hiitem]]
 endfunction "}}}
 function! s:MasqueradeExclamation.finish(env) dict abort "{{{
 	if self.dotrepeat is s:FALSE
@@ -591,7 +590,7 @@ function! s:MasqueradeP.do(item, _) abort "{{{
 	let type_addition = self.register_contents.pastetext[2]
 	call change.afterinsert(getpos("'["), getpos("']"), type_addition)
 	let hiitem = self._hiitem(a:item)
-	return [change, hiitem]
+	return [change, [hiitem]]
 endfunction "}}}
 function! s:MasqueradeP.finish(env) abort "{{{
 	call s:setregister(self.register_anonymous.saved)
@@ -661,6 +660,19 @@ function! s:MasqueradeInsert.lastitem() abort "{{{
 	call s:ms.sort(itemlist)
 	let [i, firsttarget] = itemlist[-1]
 	call s:ms.remove(i)
+	if firsttarget.type is# 'line'
+		let itemlist = s:splitlines(firsttarget)
+		let firsttarget = remove(itemlist, -1)
+		if !empty(itemlist)
+			call s:ms.append(itemlist)
+		endif
+	elseif firsttarget.type is# 'block'
+		let itemlist = s:splitblock(firsttarget)
+		let firsttarget = remove(itemlist, -1)
+		if !empty(itemlist)
+			call s:ms.append(itemlist)
+		endif
+	endif
 	return firsttarget
 endfunction "}}}
 function! s:MasqueradeInsert.executekeys() abort "{{{
@@ -739,13 +751,21 @@ function! s:MasqueradeI.fallbackkeys() abort "{{{
 	return [keyseq, flag]
 endfunction "}}}
 function! s:MasqueradeI.do(item, keyseq) abort "{{{
-	call setpos('.', a:item.head)
+	let hiitemlist = []
 	if a:item.type is# 'line'
-		normal! ^
+		let itemlist = reverse(s:splitlines(a:item))
+	elseif a:item.type is# 'block'
+		let itemlist = reverse(s:splitblock(a:item))
+	else
+		let itemlist = [a:item]
 	endif
-	execute a:keyseq . self.insertion
-	let hiitem = self._hiitem(a:item)
-	return [{}, hiitem]
+	for item in itemlist
+		call setpos('.', item.head)
+		execute a:keyseq . self.insertion
+		let hiitem = self._hiitem(item)
+		call add(hiitemlist, hiitem)
+	endfor
+	return [{}, hiitemlist]
 endfunction "}}}
 "}}}
 " MasqueradeA class{{{
@@ -765,13 +785,21 @@ function! s:MasqueradeA.fallbackkeys() abort "{{{
 	return [keyseq, flag]
 endfunction "}}}
 function! s:MasqueradeA.do(item, keyseq) abort "{{{
-	call setpos('.', a:item.tail)
+	let hiitemlist = []
 	if a:item.type is# 'line'
-		normal! $
+		let itemlist = reverse(s:splitlines(a:item))
+	elseif a:item.type is# 'block'
+		let itemlist = reverse(s:splitblock(a:item))
+	else
+		let itemlist = [a:item]
 	endif
-	execute a:keyseq . self.insertion
-	let hiitem = self._hiitem(a:item)
-	return [{}, hiitem]
+	for item in itemlist
+		call setpos('.', item.tail)
+		execute a:keyseq . self.insertion
+		let hiitem = self._hiitem(item)
+		call add(hiitemlist, hiitem)
+	endfor
+	return [{}, [hiitem]]
 endfunction "}}}
 "}}}
 " MasqueradeC class{{{
@@ -810,9 +838,69 @@ function! s:MasqueradeC.do(item, keyseq) abort "{{{
 	call s:ClassSys.super(self, 'MasqueradeYank').do(a:item, keyseq)
 	call change.afterinsert(getpos("'["), getpos("']"), 'char')
 	let hiitem = self._hiitem(a:item)
-	return [change, hiitem]
+	return [change, [hiitem]]
 endfunction "}}}
 "}}}
+function! s:splitlines(item) abort "{{{
+	let itemlist = []
+	for lnum in range(a:item.head[1], a:item.tail[1])
+		let line = getline(lnum)
+		if empty(line)
+			continue
+		endif
+		let indentstr = matchstr(line, '\m^\s*')
+		let head = [0, lnum, strlen(indentstr) + 1, 0]
+		let tail = [0, lnum, strlen(line) + 1, 0]
+		if s:inorderof(tail, head)
+			continue
+		endif
+		let itemlist += [s:Multiselect.Item(head, tail, 'v')]
+	endfor
+	return itemlist
+endfunction "}}}
+function! s:splitblock(item) abort "{{{
+	let view = winsaveview()
+	let dispheadcol = virtcol(a:item.head[1:2])
+	let disptailcol = virtcol(a:item.tail[1:2])
+	let virtualedit = &virtualedit
+	let &virtualedit = 'onemore'
+	try
+		let itemlist = []
+		if a:item.extended
+			for lnum in range(a:item.head[1], a:item.tail[1])
+				if empty(getline(lnum))
+					continue
+				endif
+				execute printf('normal! %sG%s|', lnum, dispheadcol)
+				let head = getpos('.')
+				normal! $
+				let tail = getpos('.')
+				if virtcol(tail[1:2]) < dispheadcol
+					continue
+				endif
+				let itemlist += [s:Multiselect.Item(head, tail, 'v')]
+			endfor
+		else
+			for lnum in range(a:item.head[1], a:item.tail[1])
+				if empty(getline(lnum))
+					continue
+				endif
+				execute printf('normal! %sG%s|', lnum, dispheadcol)
+				let head = getpos('.')
+				execute printf('normal! %s|', disptailcol)
+				let tail = getpos('.')
+				if virtcol(tail[1:2]) < dispheadcol
+					continue
+				endif
+				let itemlist += [s:Multiselect.Item(head, tail, 'v')]
+			endfor
+		endif
+	finally
+		let &virtualedit = virtualedit
+		call winrestview(view)
+	endtry
+	return itemlist
+endfunction "}}}
 function! s:aim() abort "{{{
 	let msqrd = g:masquerade#__CURRENT__
 	let class = msqrd.__CLASS__
