@@ -389,7 +389,7 @@ function! s:shiftitems(hiitemlist, change) abort "{{{
 	if empty(a:hiitemlist) || empty(a:change)
 		return a:hiitemlist
 	endif
-	return map(a:hiitemlist, 'a:change.apply(v:val)')
+	return a:change.mapapply(a:hiitemlist)
 endfunction "}}}
 "}}}
 
