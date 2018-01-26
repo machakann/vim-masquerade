@@ -473,7 +473,7 @@ function! s:MasqueradeD.do(item, keyseq) dict abort "{{{
 	let change = s:Multiselect.Change()
 	call change.beforedelete(a:item)
 	let [_, hiitem] = s:ClassSys.super(self, 'MasqueradeYank').do(a:item, a:keyseq)
-	return [change, [hiitem]]
+	return [change, []]
 endfunction "}}}
 "}}}
 
