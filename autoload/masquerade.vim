@@ -426,10 +426,8 @@ let s:MasqueradeYank = {
 	\	'__CLASS__': 'MasqueradeYank',
 	\	'yankedlist': [],
 	\	}
-function! s:MasqueradeYank(mode, cmd) abort "{{{
-	let sub = deepcopy(s:MasqueradeYank)
-	let super = s:MasqueradeEditor(a:mode, a:cmd)
-	return s:ClassSys.inherit(sub, super)
+function! s:MasqueradeYank() abort "{{{
+	return deepcopy(s:MasqueradeYank)
 endfunction "}}}
 function! s:MasqueradeYank.do(item, keyseq) abort "{{{
 	call a:item.select()
@@ -459,9 +457,10 @@ let s:MasqueradeY = {
 	\	'TextChanged': s:FALSE,
 	\	}
 function! s:MasqueradeY(mode, cmd) abort "{{{
-	let sub = deepcopy(s:MasqueradeY)
-	let super = s:MasqueradeYank(a:mode, a:cmd)
-	return s:ClassSys.inherit(sub, super)
+	let y = deepcopy(s:MasqueradeY)
+	let yank = s:MasqueradeYank()
+	let editor = s:MasqueradeEditor(a:mode, a:cmd)
+	return s:ClassSys.inherit(y, yank, editor)
 endfunction "}}}
 "}}}
 
@@ -478,9 +477,10 @@ let s:MasqueradeD = {
 	\	'keepcurpos': s:TRUE,
 	\	}
 function! s:MasqueradeD(mode, cmd) abort "{{{
-	let sub = deepcopy(s:MasqueradeD)
-	let super = s:MasqueradeYank(a:mode, a:cmd)
-	return s:ClassSys.inherit(sub, super)
+	let d = deepcopy(s:MasqueradeD)
+	let yank = s:MasqueradeYank()
+	let editor = s:MasqueradeEditor(a:mode, a:cmd)
+	return s:ClassSys.inherit(d, yank, editor)
 endfunction "}}}
 function! s:MasqueradeD.do(item, keyseq) dict abort "{{{
 	let change = s:Multiselect.Change()
@@ -514,9 +514,9 @@ let s:MasqueradeExclamation = {
 	\	'useregister': s:FALSE,
 	\	}
 function! s:MasqueradeExclamation(mode, cmd) abort "{{{
-	let sub = deepcopy(s:MasqueradeExclamation)
-	let super = s:MasqueradeEditor(a:mode, a:cmd)
-	return s:ClassSys.inherit(sub, super)
+	let exclamation = deepcopy(s:MasqueradeExclamation)
+	let editor = s:MasqueradeEditor(a:mode, a:cmd)
+	return s:ClassSys.inherit(exclamation, editor)
 endfunction "}}}
 function! s:MasqueradeExclamation.do(item, _) dict abort "{{{
 	call a:item.select()
@@ -583,9 +583,9 @@ let s:MasqueradeP = {
 	\	'register_anonymous': {},
 	\	}
 function! s:MasqueradeP(mode, cmd) abort "{{{
-	let sub = deepcopy(s:MasqueradeP)
-	let super = s:MasqueradeEditor(a:mode, a:cmd)
-	return s:ClassSys.inherit(sub, super)
+	let p = deepcopy(s:MasqueradeP)
+	let editor = s:MasqueradeEditor(a:mode, a:cmd)
+	return s:ClassSys.inherit(p, editor)
 endfunction "}}}
 function! s:MasqueradeP.update(...) abort "{{{
 	call s:ClassSys.super(self, 'MasqueradeEditor').update()
@@ -678,10 +678,8 @@ let s:MasqueradeInsert = {
 	\	'_change': {},
 	\	'_task': {},
 	\	}
-function! s:MasqueradeInsert(mode, cmd) abort "{{{
-	let sub = deepcopy(s:MasqueradeInsert)
-	let super = s:MasqueradeEditor(a:mode, a:cmd)
-	return s:ClassSys.inherit(sub, super)
+function! s:MasqueradeInsert() abort "{{{
+	return deepcopy(s:MasqueradeInsert)
 endfunction "}}}
 function! s:MasqueradeInsert.lastitem() abort "{{{
 	" s:ms.itemlist should not be empty for this method
@@ -753,9 +751,10 @@ let s:MasqueradeI = {
 	\	'useregister': s:FALSE,
 	\	}
 function! s:MasqueradeI(mode, cmd) abort "{{{
-	let sub = deepcopy(s:MasqueradeI)
-	let super = s:MasqueradeInsert(a:mode, a:cmd)
-	return s:ClassSys.inherit(sub, super)
+	let i = deepcopy(s:MasqueradeI)
+	let insert = s:MasqueradeInsert()
+	let editor = s:MasqueradeEditor(a:mode, a:cmd)
+	return s:ClassSys.inherit(i, insert, editor)
 endfunction "}}}
 function! s:MasqueradeI.fallbackkeys() abort "{{{
 	let keyseq = self._buildkeyseq('count', 'register', 'fallback')
@@ -787,9 +786,10 @@ let s:MasqueradeA = {
 	\	'useregister': s:FALSE,
 	\	}
 function! s:MasqueradeA(mode, cmd) abort "{{{
-	let sub = deepcopy(s:MasqueradeA)
-	let super = s:MasqueradeInsert(a:mode, a:cmd)
-	return s:ClassSys.inherit(sub, super)
+	let a = deepcopy(s:MasqueradeA)
+	let insert = s:MasqueradeInsert()
+	let editor = s:MasqueradeEditor(a:mode, a:cmd)
+	return s:ClassSys.inherit(a, insert, editor)
 endfunction "}}}
 function! s:MasqueradeA.fallbackkeys() abort "{{{
 	let keyseq = self._buildkeyseq('count', 'register', 'fallback')
@@ -819,12 +819,11 @@ let s:MasqueradeC = {
 	\	'__CLASS__': 'MasqueradeC',
 	\	}
 function! s:MasqueradeC(mode, cmd) abort "{{{
-	" FIXME: need mix-in?
-	let sub = deepcopy(s:MasqueradeC)
-	let insert = deepcopy(s:MasqueradeInsert)
-	let yank = s:MasqueradeYank(a:mode, a:cmd)
-	let super = s:ClassSys.inherit(insert, yank)
-	return s:ClassSys.inherit(sub, super)
+	let c = deepcopy(s:MasqueradeC)
+	let insert = s:MasqueradeInsert()
+	let yank = s:MasqueradeYank()
+	let editor = s:MasqueradeEditor(a:mode, a:cmd)
+	return s:ClassSys.inherit(c, insert, yank, editor)
 endfunction "}}}
 function! s:MasqueradeC.fallbackkeys() abort "{{{
 	if self.mode is# 'x'
