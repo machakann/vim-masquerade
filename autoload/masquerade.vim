@@ -217,7 +217,7 @@ function! s:MasqueradeEditor.show() abort "{{{
 		return
 	endif
 
-	call s:timer.initialize()
+	call s:timer.repeat(1)
 	for hiitem in self._hiitemlist
 		call hiitem.show(s:HIGROUP)
 		call s:timer.call(hiitem.quench, [], hiitem)
