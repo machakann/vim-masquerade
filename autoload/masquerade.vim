@@ -212,17 +212,12 @@ function! s:MasqueradeEditor.do(item, keyseq, ...) abort "{{{
 	return [{}, [hiitem]]
 endfunction "}}}
 function! s:MasqueradeEditor.show() abort "{{{
-	let duration = self.highlight
-	if duration <= 0
+	if self.highlight <= 0
 		return
 	endif
-
-	call s:timer.repeat(1)
 	for hiitem in self._hiitemlist
 		call hiitem.show(s:HIGROUP)
-		call s:timer.call(hiitem.quench, [], hiitem)
 	endfor
-	call s:timer.start(duration)
 endfunction "}}}
 function! s:MasqueradeEditor.finish(env) abort "{{{
 	if !empty(a:env)
@@ -230,13 +225,15 @@ function! s:MasqueradeEditor.finish(env) abort "{{{
 	endif
 
 	if self.highlight > 0
-		let insertenter = s:Multiselect.EventTask('InsertEnter')
-		let textchanged = s:Multiselect.EventTask('TextChanged')
-		call insertenter.call(s:timer.trigger, [], s:timer).repeat(1)
+		let either = s:Multiselect.EitherTask().repeat(1)
+		for hiitem in self._hiitemlist
+			call either.call(hiitem.quench, [], hiitem)
+		endfor
+		call either.timer(self.highlight)
+		call either.event('InsertEnter')
+		call either.event('TextChanged')
 		if self.TextChanged is s:TRUE
-			call textchanged.call(s:timer.trigger, [], s:timer).repeat(1).skip(1)
-		else
-			call textchanged.call(s:timer.trigger, [], s:timer).repeat(1)
+			call either.skip(1)
 		endif
 	endif
 
