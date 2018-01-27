@@ -1,5 +1,5 @@
 *masquerade.txt*	Tools to edit multiple selections
-						Last change:26-Jan-2018.
+						Last change:27-Jan-2018.
 
 Author  : machakann <https://github.com/machakann>
 License : MIT license
@@ -284,6 +284,14 @@ g:masquerade#highlight			*g:masquerade#highlight*
 <
 	The default value is 300. If it is less than 0, the changed texts will
 	not be highlighted.
+
+
+g:masquerade#keepothers			*g:masquerade#keepothers*
+	If this option is |TRUE|, unedited multiselect items with visual
+	selection filter will be kept checked. Otherwise they are unchecked as
+	usual. The default value is |FALSE|. >
+		let g:masquerade#keepothers = 1
+<
 
 
 ==============================================================================

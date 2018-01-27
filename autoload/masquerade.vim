@@ -24,7 +24,7 @@ noremap <SID>(doublequote) "
 let s:GV = s:SID . '(gv)'
 let s:DOUBLEQUOTE = s:SID . '(doublequote)'
 
-let g:masquerade#keepunedited = !!get(g:, 'masquerade#keepunedited', s:FALSE)
+let g:masquerade#keepothers = !!get(g:, 'masquerade#keepothers', s:FALSE)
 let g:masquerade#highlight = get(g:, 'masquerade#highlight', s:HIDURATION)
 
 let g:masquerade#__CURRENT__ = {}
@@ -77,15 +77,16 @@ augroup END
 
 function! masquerade#edit(mode, cmd, ...) abort "{{{
 	let options = {
-		\ 'keepunedited': g:masquerade#keepunedited,
+		\ 'keepothers': g:masquerade#keepothers,
 		\ 'highlight': g:masquerade#highlight,
+		\ 'Constructor': function('s:MasqueradeEditor'),
 		\ }
 	call extend(options, get(a:000, 0, {}), 'force')
 	if s:ms.isempty()
 		let fallback = get(options, 'fallback', a:cmd)
 		return fallback
 	endif
-	let msqrd = s:MasqueradeEditor(a:mode, a:cmd)
+	let msqrd = options.Constructor(a:mode, a:cmd)
 	call msqrd.initialize(options)
 	return s:start(a:mode, msqrd)
 endfunction "}}}
@@ -104,13 +105,15 @@ let s:MasqueradeEditor = {
 	\	'highlight': s:HIDURATION,
 	\	'noremap': s:TRUE,
 	\	'keepcurpos': s:TRUE,
-	\	'keepunedited': s:FALSE,
+	\	'keepothers': s:FALSE,
 	\	'usecount': s:FALSE,
 	\	'useregister': s:TRUE,
 	\	'sort': s:TRUE,
 	\	'shiftenv': s:TRUE,
+	\	'TextChanged': s:TRUE,
 	\	'dotrepeat': s:FALSE,
 	\	'_hiitemlist': [],
+	\	'_otheritems': [],
 	\	}
 function! s:MasqueradeEditor(mode, cmd) abort "{{{
 	let masquerade = deepcopy(s:MasqueradeEditor)
@@ -127,7 +130,7 @@ function! s:MasqueradeEditor.initialize(...) abort "{{{
 	call self._setopt(options, 'highlight')
 	call self._setboolopt(options, 'noremap')
 	call self._setboolopt(options, 'keepcurpos')
-	call self._setboolopt(options, 'keepunedited')
+	call self._setboolopt(options, 'keepothers')
 	call self._setboolopt(options, 'usecount')
 	call self._setboolopt(options, 'useregister')
 endfunction "}}}
@@ -161,8 +164,8 @@ endfunction "}}}
 function! s:MasqueradeEditor.itemlist() abort "{{{
 	if !empty(self.filter)
 		let itemlist = s:ms.emit_inside(self.filter)
-		if self.keepunedited is s:TRUE
-			call s:ms.Event('TextChanged').skip(1)
+		if self.keepothers is s:TRUE
+			call extend(self._otheritems, s:ms.emit())
 		else
 			call s:ms.uncheckall()
 		endif
@@ -195,6 +198,10 @@ function! s:MasqueradeEditor.execute(itemlist) abort "{{{
 				call extend(self._hiitemlist, hiitemlist)
 			endif
 		endif
+
+		if self.keepothers
+			call s:shiftitems(self._otheritems, change)
+		endif
 	endfor
 	call self.show()
 endfunction "}}}
@@ -216,17 +223,33 @@ function! s:MasqueradeEditor.show() abort "{{{
 		call s:timer.call(hiitem.quench, [], hiitem)
 	endfor
 	call s:timer.start(duration)
-	call s:ms.Event('InsertEnter').call(s:timer.trigger, [], s:timer).repeat(1)
-	call s:ms.Event('TextChanged').call(s:timer.trigger, [], s:timer).repeat(1).skip(1)
 endfunction "}}}
 function! s:MasqueradeEditor.finish(env) abort "{{{
 	if !empty(a:env)
 		call s:restoreenv(a:env)
 	endif
-	if self.keepcurpos
+
+	if self.highlight > 0
+		call s:ms.Event('InsertEnter').call(s:timer.trigger, [], s:timer).repeat(1)
+		if self.TextChanged is s:TRUE
+			call s:ms.Event('TextChanged').call(s:timer.trigger, [], s:timer).repeat(1).skip(1)
+		else
+			call s:ms.Event('TextChanged').call(s:timer.trigger, [], s:timer).repeat(1)
+		endif
+	endif
+
+	if self.keepothers is s:TRUE && !empty(self._otheritems)
+		call s:ms.append(remove(self._otheritems, 0, -1))
+		if self.TextChanged is s:TRUE
+			call s:ms.eventtask.TextChanged.uncheckall.skip(1)
+		endif
+	endif
+
+	if self.keepcurpos is s:TRUE
 		call winrestview(self.view)
 		call setpos('.', self.curpos)
 	endif
+
 	call filter(self._hiitemlist, 0)
 	let self.dotrepeat = s:TRUE
 endfunction "}}}
@@ -385,24 +408,19 @@ function! s:shiftcurpos(curpos, change) abort "{{{
 	endif
 	return a:change.apply(a:curpos)
 endfunction "}}}
-function! s:shiftitems(hiitemlist, change) abort "{{{
-	if empty(a:hiitemlist) || empty(a:change)
-		return a:hiitemlist
+function! s:shiftitems(itemlist, change) abort "{{{
+	if empty(a:itemlist) || empty(a:change)
+		return a:itemlist
 	endif
-	return a:change.mapapply(a:hiitemlist)
+	return a:change.mapapply(a:itemlist)
 endfunction "}}}
 "}}}
 
 " y
 function! masquerade#y(mode, cmd, ...) abort "{{{
 	let options = get(a:000, 0, {})
-	if s:ms.isempty()
-		let fallback = get(options, 'fallback', a:cmd)
-		return fallback
-	endif
-	let msqrd = s:MasqueradeY(a:mode, a:cmd)
-	call msqrd.initialize(options)
-	return s:start(a:mode, msqrd)
+	let options.Constructor = function('s:MasqueradeY')
+	return masquerade#edit(a:mode, a:cmd, options)
 endfunction "}}}
 " MasqueradeYank class {{{
 let s:MasqueradeYank = {
@@ -439,6 +457,7 @@ endfunction "}}}
 " MasqueradeY class {{{
 let s:MasqueradeY = {
 	\	'__CLASS__': 'MasqueradeY',
+	\	'TextChanged': s:FALSE,
 	\	}
 function! s:MasqueradeY(mode, cmd) abort "{{{
 	let sub = deepcopy(s:MasqueradeY)
@@ -450,13 +469,8 @@ endfunction "}}}
 " d
 function! masquerade#d(mode, cmd, ...) abort "{{{
 	let options = get(a:000, 0, {})
-	if s:ms.isempty()
-		let fallback = get(options, 'fallback', a:cmd)
-		return fallback
-	endif
-	let msqrd = s:MasqueradeD(a:mode, a:cmd)
-	call msqrd.initialize(options)
-	return s:start(a:mode, msqrd)
+	let options.Constructor = function('s:MasqueradeD')
+	return masquerade#edit(a:mode, a:cmd, options)
 endfunction "}}}
 " MasqueradeD class{{{
 let s:MasqueradeD = {
@@ -479,7 +493,11 @@ endfunction "}}}
 
 " !
 function! masquerade#exclamation(mode, cmd, ...) abort "{{{
-	let options = get(a:000, 0, {})
+	let options = {
+		\ 'keepothers': g:masquerade#keepothers,
+		\ 'highlight': g:masquerade#highlight,
+		\ }
+	call extend(options, get(a:000, 0, {}), 'force')
 	if s:ms.isempty()
 		let fallback = get(options, 'fallback', a:cmd)
 		return fallback
@@ -555,13 +573,8 @@ endfunction "}}}
 " p
 function! masquerade#p(mode, cmd, ...) abort "{{{
 	let options = get(a:000, 0, {})
-	if s:ms.isempty()
-		let fallback = get(options, 'fallback', a:cmd)
-		return fallback
-	endif
-	let msqrd = s:MasqueradeP(a:mode, a:cmd)
-	call msqrd.initialize(options)
-	return s:start(a:mode, msqrd)
+	let options.Constructor = function('s:MasqueradeP')
+	return masquerade#edit(a:mode, a:cmd, options)
 endfunction "}}}
 " MasqueradeP class{{{
 let s:MasqueradeP = {
@@ -604,9 +617,13 @@ endfunction "}}}
 "}}}
 
 " i, a, c
-function! s:masquerade_insert(Constructor, mode, cmd, ...) abort "{{{
-	let options = get(a:000, 0, {})
-	let msqrd = a:Constructor(a:mode, a:cmd)
+function! s:masquerade_insert(mode, cmd, ...) abort "{{{
+	let options = {
+		\ 'keepothers': g:masquerade#keepothers,
+		\ 'highlight': g:masquerade#highlight,
+		\ }
+	call extend(options, get(a:000, 0, {}), 'force')
+	let msqrd = options.Constructor(a:mode, a:cmd)
 	call msqrd.initialize(options)
 	call s:ClassSys.super(msqrd, 'MasqueradeEditor').update()
 	if a:mode is# 'x'
@@ -620,24 +637,36 @@ function! s:masquerade_insert(Constructor, mode, cmd, ...) abort "{{{
 		call call('feedkeys', msqrd.fallbackkeys())
 		return
 	endif
+
 	let msqrd.firsttarget = msqrd.lastitem()
-	call s:setautocmd()
-	call s:ms.Event('InsertEnter').skip(1)
+	if empty(msqrd.firsttarget)
+		return
+	endif
+
+	let msqrd._change = s:Multiselect.Change()
+	call msqrd._change.beforedelete(msqrd.firsttarget)
+
+	call s:ms.eventtask.InsertEnter.uncheckall.skip(1)
+	let msqrd._task = s:ms.Event('InsertLeave').call(function('s:InsertLeave'), []).repeat(1)
+
 	call s:start(a:mode, msqrd)
 	call call('feedkeys', msqrd.executekeys())
 	call feedkeys(s:AIM, 'im')
 endfunction "}}}
 function! masquerade#i(mode, cmd, ...) abort "{{{
-	let args = [function('s:MasqueradeI'), a:mode, a:cmd] + a:000
-	call call('s:masquerade_insert', args)
+	let options = get(a:000, 0, {})
+	let options.Constructor = function('s:MasqueradeI')
+	call s:masquerade_insert(a:mode, a:cmd, options)
 endfunction "}}}
 function! masquerade#a(mode, cmd, ...) abort "{{{
-	let args = [function('s:MasqueradeA'), a:mode, a:cmd] + a:000
-	call call('s:masquerade_insert', args)
+	let options = get(a:000, 0, {})
+	let options.Constructor = function('s:MasqueradeA')
+	call s:masquerade_insert(a:mode, a:cmd, options)
 endfunction "}}}
 function! masquerade#c(mode, cmd, ...) abort "{{{
-	let args = [function('s:MasqueradeC'), a:mode, a:cmd] + a:000
-	call call('s:masquerade_insert', args)
+	let options = get(a:000, 0, {})
+	let options.Constructor = function('s:MasqueradeC')
+	call s:masquerade_insert(a:mode, a:cmd, options)
 endfunction "}}}
 " MasqueradeInsert class{{{
 let s:MasqueradeInsert = {
@@ -645,6 +674,8 @@ let s:MasqueradeInsert = {
 	\	'reserved_itemlist': [],
 	\	'firsttarget': {},
 	\	'insertion': '',
+	\	'_change': {},
+	\	'_task': {},
 	\	}
 function! s:MasqueradeInsert(mode, cmd) abort "{{{
 	let sub = deepcopy(s:MasqueradeInsert)
@@ -654,11 +685,18 @@ endfunction "}}}
 function! s:MasqueradeInsert.lastitem() abort "{{{
 	" s:ms.itemlist should not be empty for this method
 	if !empty(self.filter)
-		let itemlist = s:ms.enumerate({_, item -> item.isinside(self.filter)})
-	else
-		let itemlist = s:ms.enumerate()
+		if self.keepothers is s:TRUE
+			let others = s:ms.emit({_, item -> !item.isinside(self.filter)})
+			call extend(self._otheritems, others)
+		else
+			call s:ms.filter({_, item -> item.isinside(self.filter)})
+		endif
 	endif
+	let itemlist = s:ms.enumerate()
 	call s:ms.sort(itemlist)
+	if empty(itemlist)
+		return {}
+	endif
 	let [i, firsttarget] = itemlist[-1]
 	call s:ms.remove(i)
 	if firsttarget.type is# 'line'
@@ -705,34 +743,6 @@ function! s:MasqueradeInsert._hiitem(item) abort "{{{
 		endif
 	endif
 	return {}
-endfunction "}}}
-function! s:setautocmd() abort "{{{
-	augroup copycat-keymap
-		autocmd!
-		autocmd InsertLeave <buffer> call s:InsertLeave()
-	augroup END
-endfunction "}}}
-function! s:clearautocmd() abort "{{{
-	augroup copycat-keymap
-		autocmd!
-	augroup END
-endfunction "}}}
-function! s:InsertLeave() abort "{{{
-	let msqrd = g:masquerade#__CURRENT__
-	if msqrd.usecount is s:TRUE
-		let countstr = s:countstr(msqrd.count)
-	else
-		let countstr = ''
-	endif
-	if msqrd.useregister
-		let register = msqrd.register
-	endif
-	let hiitem = msqrd._hiitem(msqrd.firsttarget)
-	if !empty(hiitem)
-		call add(msqrd._hiitemlist, hiitem)
-	endif
-	call feedkeys(countstr . 'g@l', 'in')
-	call s:clearautocmd()
 endfunction "}}}
 "}}}
 " MasqueradeI class{{{
@@ -842,6 +852,28 @@ function! s:MasqueradeC.do(item, keyseq) abort "{{{
 	return [change, [hiitem]]
 endfunction "}}}
 "}}}
+function! s:InsertLeave() abort "{{{
+	let msqrd = g:masquerade#__CURRENT__
+	if msqrd.usecount is s:TRUE
+		let countstr = s:countstr(msqrd.count)
+	else
+		let countstr = ''
+	endif
+
+	if msqrd.useregister
+		let register = msqrd.register
+	endif
+
+	call msqrd._change.afterinsert(getpos("'["), getpos("']"), 'char')
+	call s:shiftitems(msqrd._otheritems, msqrd._change)
+
+	let hiitem = msqrd._hiitem(msqrd.firsttarget)
+	if !empty(hiitem)
+		call add(msqrd._hiitemlist, hiitem)
+	endif
+
+	call feedkeys(countstr . 'g@l', 'in')
+endfunction "}}}
 function! s:splitlines(item) abort "{{{
 	let itemlist = []
 	for lnum in range(a:item.head[1], a:item.tail[1])
