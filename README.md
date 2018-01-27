@@ -67,3 +67,7 @@ map = <Plug>(masquerade-=)
 
 map ! <Plug>(masquerade-!)
 ```
+
+# Demo
+
+![masquerade demo](https://imgur.com/SZ4624O.gif)
