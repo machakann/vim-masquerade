@@ -230,18 +230,20 @@ function! s:MasqueradeEditor.finish(env) abort "{{{
 	endif
 
 	if self.highlight > 0
-		call s:ms.Event('InsertEnter').call(s:timer.trigger, [], s:timer).repeat(1)
+		let insertenter = s:Multiselect.EventTask('InsertEnter')
+		let textchanged = s:Multiselect.EventTask('TextChanged')
+		call insertenter.call(s:timer.trigger, [], s:timer).repeat(1)
 		if self.TextChanged is s:TRUE
-			call s:ms.Event('TextChanged').call(s:timer.trigger, [], s:timer).repeat(1).skip(1)
+			call textchanged.call(s:timer.trigger, [], s:timer).repeat(1).skip(1)
 		else
-			call s:ms.Event('TextChanged').call(s:timer.trigger, [], s:timer).repeat(1)
+			call textchanged.call(s:timer.trigger, [], s:timer).repeat(1)
 		endif
 	endif
 
 	if self.keepothers is s:TRUE && !empty(self._otheritems)
 		call s:ms.append(remove(self._otheritems, 0, -1))
 		if self.TextChanged is s:TRUE
-			call s:ms.eventtask.TextChanged.uncheckall.skip(1)
+			call s:ms.event('TextChanged').skip(1)
 		endif
 	endif
 
@@ -646,8 +648,10 @@ function! s:masquerade_insert(mode, cmd, ...) abort "{{{
 	let msqrd._change = s:Multiselect.Change()
 	call msqrd._change.beforedelete(msqrd.firsttarget)
 
-	call s:ms.eventtask.InsertEnter.uncheckall.skip(1)
-	let msqrd._task = s:ms.Event('InsertLeave').call(function('s:InsertLeave'), []).repeat(1)
+	call s:ms.event('InsertEnter').skip(1)
+	call s:Multiselect.EventTask('InsertLeave')
+					 \.call(function('s:InsertLeave'), [])
+					 \.repeat(1)
 
 	call s:start(a:mode, msqrd)
 	call call('feedkeys', msqrd.executekeys())
