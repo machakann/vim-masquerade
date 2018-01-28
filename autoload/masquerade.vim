@@ -646,9 +646,10 @@ function! s:masquerade_insert(mode, cmd, ...) abort "{{{
 	call msqrd._change.beforedelete(msqrd.firsttarget)
 
 	call s:ms.event('InsertEnter').skip(1)
-	call s:Multiselect.EventTask('InsertLeave')
+	call s:Multiselect.EventTask()
 					 \.call(function('s:InsertLeave'), [])
 					 \.repeat(1)
+					 \.start('InsertLeave')
 
 	call s:start(a:mode, msqrd)
 	call call('feedkeys', msqrd.executekeys())
