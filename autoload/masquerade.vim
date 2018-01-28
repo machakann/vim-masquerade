@@ -229,12 +229,24 @@ function! s:MasqueradeEditor.finish(env) abort "{{{
 		for hiitem in self._hiitemlist
 			call either.call(hiitem.quench, [], hiitem)
 		endfor
-		call either.timer(self.highlight)
-		call either.event('InsertEnter')
-		call either.event('TextChanged')
 		if self.TextChanged is s:TRUE
-			call either.skip(1)
+			call either.skip(1)  " skip the next TextChanged event
 		endif
+
+		" NOTE: This is a hack for cmdline-window
+		" If entering to the cmdline-window when highlight is on,
+		" it cannot be removed. Thus using TaskChain to remove it
+		" when coming back to the original buffer
+		let taskchain = s:Multiselect.TaskChain()
+		call taskchain.event('CmdwinEnter').call(either.stop, [], either)
+		call taskchain.event('CmdwinLeave')
+		call taskchain.timer(100).call(either.trigger, [s:TRUE], either)
+		call taskchain.start()
+
+		" NOTE: If everything goes on normally, the taskchain is abandoned
+		call either.call(taskchain.stop, [], taskchain)
+		call either.start([self.highlight, 'InsertEnter', 'TextChanged',
+							\'BufLeave', 'TabLeave'])
 	endif
 
 	if self.keepothers is s:TRUE && !empty(self._otheritems)
