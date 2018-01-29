@@ -225,12 +225,12 @@ function! s:MasqueradeEditor.finish(env) abort "{{{
 	endif
 
 	if self.highlight > 0
-		let either = s:Multiselect.EitherTask().repeat(1)
+		let racetask = s:Multiselect.RaceTask().repeat(1)
 		for hiitem in self._hiitemlist
-			call either.call(hiitem.quench, [], hiitem)
+			call racetask.call(hiitem.quench, [], hiitem)
 		endfor
 		if self.TextChanged is s:TRUE
-			call either.skip(1)  " skip the next TextChanged event
+			call racetask.skip(1)  " skip the next TextChanged event
 		endif
 
 		" NOTE: This is a hack for cmdline-window
@@ -238,14 +238,14 @@ function! s:MasqueradeEditor.finish(env) abort "{{{
 		" it cannot be removed. Thus using TaskChain to remove it
 		" when coming back to the original buffer
 		let taskchain = s:Multiselect.TaskChain()
-		call taskchain.event('CmdwinEnter').call(either.stop, [], either)
+		call taskchain.event('CmdwinEnter').call(racetask.stop, [], racetask)
 		call taskchain.event('CmdwinLeave')
-		call taskchain.timer(100).call(either.trigger, [s:TRUE], either)
+		call taskchain.timer(100).call(racetask.trigger, [s:TRUE], racetask)
 		call taskchain.start()
 
 		" NOTE: If everything goes on normally, the taskchain is abandoned
-		call either.call(taskchain.stop, [], taskchain)
-		call either.start([self.highlight, 'InsertEnter', 'TextChanged',
+		call racetask.call(taskchain.stop, [], taskchain)
+		call racetask.start([self.highlight, 'InsertEnter', 'TextChanged',
 							\'BufLeave', 'TabLeave'])
 	endif
 
