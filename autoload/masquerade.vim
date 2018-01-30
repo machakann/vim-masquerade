@@ -215,6 +215,7 @@ function! s:MasqueradeEditor.show() abort "{{{
 	if self.highlight <= 0
 		return
 	endif
+	call filter(self._hiitemlist, '!empty(v:val)')
 	for hiitem in self._hiitemlist
 		call hiitem.show(s:HIGROUP)
 	endfor
