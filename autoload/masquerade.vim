@@ -628,34 +628,68 @@ endfunction "}}}
 "}}}
 
 " i, a, c
-function! s:masquerade_insert(mode, cmd, ...) abort "{{{
+function! masquerade#i(mode, cmd, ...) abort "{{{
 	let options = {
 		\ 'keepothers': g:masquerade#keepothers,
 		\ 'highlight': g:masquerade#highlight,
 		\ }
 	call extend(options, get(a:000, 0, {}), 'force')
-	let msqrd = options.Constructor(a:mode, a:cmd)
-	call msqrd.initialize(options)
-	call s:ClassSys.super(msqrd, 'MasqueradeEditor').update()
-	if a:mode is# 'x'
-		let msqrd.count = v:prevcount
-		let msqrd.count1 = msqrd.count ? msqrd.count : 1
+	let i = s:MasqueradeI(a:mode, a:cmd)
+	call i.initialize(options)
+	call i.start()
+endfunction "}}}
+function! masquerade#a(mode, cmd, ...) abort "{{{
+	let options = {
+		\ 'keepothers': g:masquerade#keepothers,
+		\ 'highlight': g:masquerade#highlight,
+		\ }
+	call extend(options, get(a:000, 0, {}), 'force')
+	let a = s:MasqueradeA(a:mode, a:cmd)
+	call a.initialize(options)
+	call a.start()
+endfunction "}}}
+function! masquerade#c(mode, cmd, ...) abort "{{{
+	let options = {
+		\ 'keepothers': g:masquerade#keepothers,
+		\ 'highlight': g:masquerade#highlight,
+		\ }
+	call extend(options, get(a:000, 0, {}), 'force')
+	let c = s:MasqueradeC(a:mode, a:cmd)
+	call c.initialize(options)
+	call c.start()
+endfunction "}}}
+" MasqueradeInsert class{{{
+let s:MasqueradeInsert = {
+	\	'__CLASS__': 'MasqueradeInsert',
+	\	'reserved_itemlist': [],
+	\	'insertion': '',
+	\	'_change': {},
+	\	}
+function! s:MasqueradeInsert() abort "{{{
+	return deepcopy(s:MasqueradeInsert)
+endfunction "}}}
+function! s:MasqueradeInsert.start() abort "{{{
+	call s:ClassSys.super(self, 'MasqueradeEditor').update()
+	if self.mode is# 'x'
+		let self.count = v:prevcount
+		let self.count1 = self.count ? self.count : 1
 	else
-		let msqrd.count = v:count
-		let msqrd.count1 = v:count1
+		let self.count = v:count
+		let self.count1 = v:count1
 	endif
 	if s:ms.isempty()
-		call call('feedkeys', msqrd.fallbackkeys())
+		call call('feedkeys', self.fallbackkeys())
 		return
 	endif
 
-	let msqrd.firsttarget = msqrd.lastitem()
-	if empty(msqrd.firsttarget)
+	let firsttarget = self.lastitem()
+	if empty(firsttarget)
+		call call('feedkeys', self.fallbackkeys())
 		return
 	endif
 
-	let msqrd._change = s:Multiselect.Change()
-	call msqrd._change.beforedelete(msqrd.firsttarget)
+	let self._change = s:Multiselect.Change()
+	call self._change.beforedelete(firsttarget)
 
 	call s:ms.event('InsertEnter').skip(1)
 	call s:Multiselect.EventTask()
@@ -663,36 +697,9 @@ function! s:masquerade_insert(mode, cmd, ...) abort "{{{
 					 \.repeat(1)
 					 \.start('InsertLeave')
 
-	call s:start(a:mode, msqrd)
-	call call('feedkeys', msqrd.executekeys())
-	call feedkeys(s:AIM, 'im')
-endfunction "}}}
-function! masquerade#i(mode, cmd, ...) abort "{{{
-	let options = get(a:000, 0, {})
-	let options.Constructor = function('s:MasqueradeI')
-	call s:masquerade_insert(a:mode, a:cmd, options)
-endfunction "}}}
-function! masquerade#a(mode, cmd, ...) abort "{{{
-	let options = get(a:000, 0, {})
-	let options.Constructor = function('s:MasqueradeA')
-	call s:masquerade_insert(a:mode, a:cmd, options)
-endfunction "}}}
-function! masquerade#c(mode, cmd, ...) abort "{{{
-	let options = get(a:000, 0, {})
-	let options.Constructor = function('s:MasqueradeC')
-	call s:masquerade_insert(a:mode, a:cmd, options)
-endfunction "}}}
-" MasqueradeInsert class{{{
-let s:MasqueradeInsert = {
-	\	'__CLASS__': 'MasqueradeInsert',
-	\	'reserved_itemlist': [],
-	\	'firsttarget': {},
-	\	'insertion': '',
-	\	'_change': {},
-	\	'_task': {},
-	\	}
-function! s:MasqueradeInsert() abort "{{{
-	return deepcopy(s:MasqueradeInsert)
+	call s:start(self.mode, self)
+	call self.aim(firsttarget)
+	call call('feedkeys', self.executekeys())
 endfunction "}}}
 function! s:MasqueradeInsert.lastitem() abort "{{{
 	" s:ms.itemlist should not be empty for this method
@@ -733,6 +740,7 @@ function! s:MasqueradeInsert.executekeys() abort "{{{
 endfunction "}}}
 function! s:MasqueradeInsert.update() abort "{{{
 	if self.dotrepeat is s:FALSE
+		" done in self.start()
 		return
 	endif
 	call s:ClassSys.super(self, 'MasqueradeEditor').update()
@@ -774,6 +782,12 @@ function! s:MasqueradeI.fallbackkeys() abort "{{{
 	let flag = self.noremap ? 'in' : 'im'
 	return [keyseq, flag]
 endfunction "}}}
+function! s:MasqueradeI.aim(firsttarget) abort "{{{
+	call setpos('.', a:firsttarget.head)
+	call s:openfolding()
+	let self.curpos = getpos('.')
+	let self.view = winsaveview()
+endfunction "}}}
 function! s:MasqueradeI.do(item, keyseq) abort "{{{
 	let hiitemlist = []
 	if a:item.type is# 'line'
@@ -808,6 +822,12 @@ function! s:MasqueradeA.fallbackkeys() abort "{{{
 	let keyseq = self._buildkeyseq('count', 'register', 'fallback')
 	let flag = self.noremap ? 'in' : 'im'
 	return [keyseq, flag]
+endfunction "}}}
+function! s:MasqueradeA.aim(firsttarget) abort "{{{
+	call setpos('.', a:firsttarget.tail)
+	call s:openfolding()
+	let self.curpos = getpos('.')
+	let self.view = winsaveview()
 endfunction "}}}
 function! s:MasqueradeA.do(item, keyseq) abort "{{{
 	let hiitemlist = []
@@ -847,11 +867,18 @@ function! s:MasqueradeC.fallbackkeys() abort "{{{
 	let flag = self.noremap ? 'in' : 'im'
 	return [keyseq, flag]
 endfunction "}}}
+function! s:MasqueradeC.aim(firsttarget) abort "{{{
+	call setpos('.', a:firsttarget.head)
+	call s:openfolding()
+	let self.curpos = getpos('.')
+	let self.view = winsaveview()
+	call add(self.yankedlist, a:firsttarget)
+	call a:firsttarget.select()
+endfunction "}}}
 function! s:MasqueradeC.update() abort "{{{
 	if self.dotrepeat is s:FALSE
-		let firsttarget = self.firsttarget
+		let firsttarget = self.yankedlist[0]
 		let firsttarget.textlist = getreg(self.register, 0, 1)
-		call add(self.yankedlist, firsttarget)
 	endif
 	call s:ClassSys.super(self, 'MasqueradeInsert').update()
 endfunction "}}}
@@ -867,24 +894,23 @@ endfunction "}}}
 "}}}
 function! s:InsertLeave() abort "{{{
 	let msqrd = g:masquerade#__CURRENT__
+
+	" this 'insertion' cannot be obtain in MasqueradeInsert.update()
+	" because the following feedkeys(countstr . 'g@', 'in') updates '[, '] marks
+	let insertion = s:Multiselect.Region(getpos("'["), getpos("']"), 'char')
+	call msqrd._change.afterinsert(insertion)
+	call s:shiftitems(msqrd._otheritems, msqrd._change)
+
+	let hiitem = msqrd._hiitem(insertion)
+	if !empty(hiitem)
+		call add(msqrd._hiitemlist, hiitem)
+	endif
+
 	if msqrd.usecount is s:TRUE
 		let countstr = s:countstr(msqrd.count)
 	else
 		let countstr = ''
 	endif
-
-	if msqrd.useregister
-		let register = msqrd.register
-	endif
-
-	call msqrd._change.afterinsert(getpos("'["), getpos("']"), 'char')
-	call s:shiftitems(msqrd._otheritems, msqrd._change)
-
-	let hiitem = msqrd._hiitem(msqrd.firsttarget)
-	if !empty(hiitem)
-		call add(msqrd._hiitemlist, hiitem)
-	endif
-
 	call feedkeys(countstr . 'g@l', 'in')
 endfunction "}}}
 function! s:splitlines(item) abort "{{{
@@ -947,29 +973,6 @@ function! s:splitblock(item) abort "{{{
 	endtry
 	return itemlist
 endfunction "}}}
-function! s:aim() abort "{{{
-	let msqrd = g:masquerade#__CURRENT__
-	let class = msqrd.__CLASS__
-	if class is# 'MasqueradeI'
-		call setpos('.', msqrd.firsttarget.head)
-		call s:openfolding()
-		let msqrd.curpos = getpos('.')
-		let msqrd.view = winsaveview()
-	elseif class is# 'MasqueradeA'
-		call setpos('.', msqrd.firsttarget.tail)
-		call s:openfolding()
-		let msqrd.curpos = getpos('.')
-		let msqrd.view = winsaveview()
-	elseif class is# 'MasqueradeC'
-		call setpos('.', msqrd.firsttarget.head)
-		call s:openfolding()
-		let msqrd.curpos = getpos('.')
-		let msqrd.view = winsaveview()
-		call msqrd.firsttarget.select()
-	endif
-endfunction "}}}
-nnoremap <silent> <SID>(aim) :<C-u>call <SID>aim()<CR>
-let s:AIM = s:SID . '(aim)'
 
 function! s:countstr(count) abort "{{{
 	return a:count ? string(a:count) : ''
