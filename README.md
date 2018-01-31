@@ -18,6 +18,9 @@ This plugin does not provide any default keymappings. Choose what you need from 
 nmap y <Plug>(masquerade-y)
 xmap y <Plug>(masquerade-y)
 
+nmap Y <Plug>(masquerade-Y)
+xmap Y <Plug>(masquerade-Y)
+
 map d <Plug>(masquerade-d)
 
 nmap D <Plug>(masquerade-D)
@@ -47,7 +50,10 @@ nmap P <Plug>(masquerade-P)
 xmap P <Plug>(masquerade-P)
 
 nmap i <Plug>(masquerade-i)
+xmap I <Plug>(masquerade-i)
+
 nmap a <Plug>(masquerade-a)
+nmap A <Plug>(masquerade-a)
 
 map < <Plug>(masquerade-<)
 map > <Plug>(masquerade->)
