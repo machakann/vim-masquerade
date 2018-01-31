@@ -741,7 +741,10 @@ function! s:MasqueradeInsert.executekeys() abort "{{{
 endfunction "}}}
 function! s:MasqueradeInsert.update() abort "{{{
 	if self.dotrepeat is s:FALSE
-		" done in self.start()
+		" reset skip count set in s:InsertLeave()
+		call s:ms.event('TextChanged').skip(0)
+
+		" .update() has done in self.start()
 		return
 	endif
 	call s:ClassSys.super(self, 'MasqueradeEditor').update()
@@ -906,6 +909,10 @@ function! s:InsertLeave() abort "{{{
 	if !empty(hiitem)
 		call add(msqrd._hiitemlist, hiitem)
 	endif
+
+	" Only right after a completion, TextChanged event is triggered after
+	" InsertLeave event. This is a hack to skip the TextChanged event.
+	call s:ms.event('TextChanged').skip(1)
 
 	if msqrd.usecount is s:TRUE
 		let countstr = s:countstr(msqrd.count)
