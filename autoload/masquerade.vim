@@ -78,7 +78,7 @@ let s:MasqueradeEditor = {
 	\	'curpos': copy(s:NULLPOS),
 	\	'view': {},
 	\	'highlight': s:HIDURATION,
-	\	'noremap': s:TRUE,
+	\	'remap': s:FALSE,
 	\	'keepcurpos': s:TRUE,
 	\	'keepothers': s:FALSE,
 	\	'usecount': s:FALSE,
@@ -115,7 +115,7 @@ function! s:MasqueradeEditor.initialize(...) abort "{{{
 	let self.curpos = getpos('.')
 	let self.view = winsaveview()
 	call self._setopt(options, 'highlight')
-	call self._setboolopt(options, 'noremap')
+	call self._setboolopt(options, 'remap')
 	call self._setboolopt(options, 'keepcurpos')
 	call self._setboolopt(options, 'keepothers')
 	call self._setboolopt(options, 'usecount')
@@ -268,10 +268,10 @@ function! s:MasqueradeEditor._buildkeyseq(...) abort "{{{
 
 	if count(order, 'normal') > 0
 		let normal = 'noautocmd normal'
-		if self.noremap is s:TRUE
-			let bang = '!'
-		else
+		if self.remap is s:TRUE
 			let bang = ''
+		else
+			let bang = '!'
 		endif
 		let normal .= bang
 		let normal .= ' '
@@ -287,10 +287,10 @@ function! s:MasqueradeEditor._buildkeyseq(...) abort "{{{
 
 	if count(order, 'register') > 0 && self.useregister
 		let register = ''
-		if self.noremap is s:TRUE
-			let dq = '"'
-		else
+		if self.remap is s:TRUE
 			let dq = s:DOUBLEQUOTE
+		else
+			let dq = '"'
 		endif
 		let register .= dq
 		let register .= self.register
@@ -299,10 +299,10 @@ function! s:MasqueradeEditor._buildkeyseq(...) abort "{{{
 	endif
 
 	if count(order, 'gv') > 0
-		if self.noremap is s:TRUE
-			let gv = 'gv'
-		else
+		if self.remap is s:TRUE
 			let gv = s:GV
+		else
+			let gv = 'gv'
 		endif
 	else
 		let gv = ''
@@ -791,7 +791,7 @@ endfunction "}}}
 
 function! s:MasqueradeInsert.executekeys() abort "{{{
 	let keyseq = self._buildkeyseq('count', 'register', 'cmd')
-	let flag = self.noremap ? 'in' : 'im'
+	let flag = self.remap ? 'im' : 'in'
 	return [keyseq, flag]
 endfunction "}}}
 
@@ -871,7 +871,7 @@ endfunction "}}}
 
 function! s:MasqueradeI.fallbackkeys() abort "{{{
 	let keyseq = self._buildkeyseq('count', 'register', 'fallback')
-	let flag = self.noremap ? 'in' : 'im'
+	let flag = self.remap ? 'im' : 'in'
 	return [keyseq, flag]
 endfunction "}}}
 
@@ -918,7 +918,7 @@ endfunction "}}}
 
 function! s:MasqueradeA.fallbackkeys() abort "{{{
 	let keyseq = self._buildkeyseq('count', 'register', 'fallback')
-	let flag = self.noremap ? 'in' : 'im'
+	let flag = self.remap ? 'im' : 'in'
 	return [keyseq, flag]
 endfunction "}}}
 
@@ -968,7 +968,7 @@ function! s:MasqueradeC.fallbackkeys() abort "{{{
 	else
 		let keyseq = self._buildkeyseq('count', 'register', 'fallback')
 	endif
-	let flag = self.noremap ? 'in' : 'im'
+	let flag = self.remap ? 'im' : 'in'
 	return [keyseq, flag]
 endfunction "}}}
 
