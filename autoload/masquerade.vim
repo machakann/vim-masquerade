@@ -48,23 +48,6 @@ function! masquerade#operatorfunc(motionwise) abort "{{{
 	endtry
 endfunction "}}}
 
-" highlight group{{{
-let s:HIGROUP = 'MasqueradeChange'
-function! s:default_highlight() abort
-	if hlexists('DiffChange')
-		highlight default link MasqueradeChange DiffChange
-	else
-		highlight default MasqueradeChange cterm=reverse gui=reverse
-	endif
-endfunction
-call s:default_highlight()
-
-augroup masquerade-highlgiht
-	autocmd!
-	autocmd ColorScheme * call s:default_highlight()
-augroup END
-"}}}
-
 function! masquerade#edit(mode, cmd, ...) abort "{{{
 	let options = {
 		\ 'keepothers': g:masquerade#keepothers,
@@ -80,7 +63,9 @@ function! masquerade#edit(mode, cmd, ...) abort "{{{
 	call msqrd.initialize(options)
 	return msqrd.start()
 endfunction "}}}
+
 " MasqueradeEditor class{{{
+unlockvar! s:MasqueradeEditor
 let s:MasqueradeEditor = {
 	\	'__CLASS__': 'MasqueradeEditor',
 	\	'cmd': '',
@@ -136,6 +121,7 @@ function! s:MasqueradeEditor.initialize(...) abort "{{{
 	call self._setboolopt(options, 'usecount')
 	call self._setboolopt(options, 'useregister')
 endfunction "}}}
+
 function! s:MasqueradeEditor.update() abort "{{{
 	let self.count = v:count
 	let self.count1 = v:count1
@@ -155,6 +141,7 @@ function! s:MasqueradeEditor.update() abort "{{{
 		endif
 	endif
 endfunction "}}}
+
 function! s:MasqueradeEditor.prepare() abort "{{{
 	if self.shiftenv
 		let env = s:shiftenv()
@@ -163,6 +150,7 @@ function! s:MasqueradeEditor.prepare() abort "{{{
 	endif
 	return env
 endfunction "}}}
+
 function! s:MasqueradeEditor.itemlist() abort "{{{
 	if !empty(self.filter)
 		let itemlist = s:ms.emit_inside(self.filter)
@@ -176,6 +164,7 @@ function! s:MasqueradeEditor.itemlist() abort "{{{
 	endif
 	return itemlist
 endfunction "}}}
+
 function! s:MasqueradeEditor.execute(itemlist) abort "{{{
 	call filter(a:itemlist, '!empty(v:val)')
 	if empty(a:itemlist)
@@ -207,12 +196,14 @@ function! s:MasqueradeEditor.execute(itemlist) abort "{{{
 	endfor
 	call self.show()
 endfunction "}}}
+
 function! s:MasqueradeEditor.do(item, keyseq, ...) abort "{{{
 	call a:item.select()
 	execute a:keyseq
 	let hiitem = self._hiitem(a:item)
 	return [{}, [hiitem]]
 endfunction "}}}
+
 function! s:MasqueradeEditor.show() abort "{{{
 	if self.highlight <= 0
 		return
@@ -222,6 +213,7 @@ function! s:MasqueradeEditor.show() abort "{{{
 		call hiitem.show(s:HIGROUP)
 	endfor
 endfunction "}}}
+
 function! s:MasqueradeEditor.finish(env) abort "{{{
 	if !empty(a:env)
 		call s:restoreenv(a:env)
@@ -267,6 +259,8 @@ function! s:MasqueradeEditor.finish(env) abort "{{{
 	call filter(self._hiitemlist, 0)
 	let self.dotrepeat = s:TRUE
 endfunction "}}}
+
+
 
 let s:DEFAULTORDER = ['normal', 'count', 'register', 'cmd']
 function! s:MasqueradeEditor._buildkeyseq(...) abort "{{{
@@ -326,6 +320,7 @@ function! s:MasqueradeEditor._buildkeyseq(...) abort "{{{
 
 	return printf('%s%s%s%s%s', normal, gv, countstr, register, cmd)
 endfunction "}}}
+
 function! s:MasqueradeEditor._hiitem(item) abort "{{{
 	if self.highlight > 0
 		let head = getpos("'[")
@@ -337,16 +332,20 @@ function! s:MasqueradeEditor._hiitem(item) abort "{{{
 	endif
 	return {}
 endfunction "}}}
+
 function! s:MasqueradeEditor._setboolopt(options, name) abort "{{{
 	if has_key(a:options, a:name)
 		let self[a:name] = !!a:options[a:name]
 	endif
 endfunction "}}}
+
 function! s:MasqueradeEditor._setopt(options, name) abort "{{{
 	if has_key(a:options, a:name)
 		let self[a:name] = a:options[a:name]
 	endif
 endfunction "}}}
+
+
 
 function! s:getfilter(start, end, type) abort "{{{
 	let filter = s:Multiselect.Region(a:start, a:end, a:type)
@@ -365,6 +364,7 @@ function! s:getfilter(start, end, type) abort "{{{
 	endif
 	return filter
 endfunction "}}}
+
 function! s:rerenderfilter(start, oldfilter) abort "{{{
 	if empty(a:oldfilter)
 		return {}
@@ -404,6 +404,7 @@ function! s:rerenderfilter(start, oldfilter) abort "{{{
 	let newfilter.lines = a:oldfilter.lines
 	return newfilter
 endfunction "}}}
+
 function! s:virt2pos(lnum, virtcol) abort "{{{
 	let view = winsaveview()
 	let virtualedit = &virtualedit
@@ -416,19 +417,24 @@ function! s:virt2pos(lnum, virtcol) abort "{{{
 	endtry
 	return pos
 endfunction "}}}
+
 function! s:shiftcurpos(curpos, change) abort "{{{
 	if empty(a:change)
 		return a:curpos
 	endif
 	return a:change.apply(a:curpos)
 endfunction "}}}
+
 function! s:shiftitems(itemlist, change) abort "{{{
 	if empty(a:itemlist) || empty(a:change)
 		return a:itemlist
 	endif
 	return a:change.mapapply(a:itemlist)
 endfunction "}}}
+lockvar! s:MasqueradeEditor
 "}}}
+
+
 
 " y
 function! masquerade#y(mode, cmd, ...) abort "{{{
@@ -436,7 +442,9 @@ function! masquerade#y(mode, cmd, ...) abort "{{{
 	let options.Constructor = function('s:MasqueradeY')
 	return masquerade#edit(a:mode, a:cmd, options)
 endfunction "}}}
+
 " MasqueradeYank class {{{
+unlockvar! s:MasqueradeYank
 let s:MasqueradeYank = {
 	\	'__CLASS__': 'MasqueradeYank',
 	\	'yankedlist': [],
@@ -444,6 +452,7 @@ let s:MasqueradeYank = {
 function! s:MasqueradeYank() abort "{{{
 	return deepcopy(s:MasqueradeYank)
 endfunction "}}}
+
 function! s:MasqueradeYank.do(item, keyseq) abort "{{{
 	call a:item.select()
 	execute a:keyseq
@@ -452,6 +461,7 @@ function! s:MasqueradeYank.do(item, keyseq) abort "{{{
 	let hiitem = self._hiitem(a:item)
 	return [{}, [hiitem]]
 endfunction "}}}
+
 function! s:MasqueradeYank.finish(env) abort "{{{
 	call s:ms.sort(self.yankedlist)
 	let type = 'block'
@@ -465,8 +475,11 @@ function! s:MasqueradeYank.finish(env) abort "{{{
 	call setreg(self.register, textlist, type[0])
 	call s:ClassSys.super(self, 'MasqueradeEditor').finish(a:env)
 endfunction "}}}
+lockvar! s:MasqueradeYank
 "}}}
+
 " MasqueradeY class {{{
+unlockvar! s:MasqueradeY
 let s:MasqueradeY = {
 	\	'__CLASS__': 'MasqueradeY',
 	\	'TextChanged': s:FALSE,
@@ -477,7 +490,10 @@ function! s:MasqueradeY(mode, cmd) abort "{{{
 	let editor = s:MasqueradeEditor(a:mode, a:cmd)
 	return s:ClassSys.inherit(y, yank, editor)
 endfunction "}}}
+lockvar! s:MasqueradeY
 "}}}
+
+
 
 " d
 function! masquerade#d(mode, cmd, ...) abort "{{{
@@ -485,7 +501,9 @@ function! masquerade#d(mode, cmd, ...) abort "{{{
 	let options.Constructor = function('s:MasqueradeD')
 	return masquerade#edit(a:mode, a:cmd, options)
 endfunction "}}}
+
 " MasqueradeD class{{{
+unlockvar! s:MasqueradeD
 let s:MasqueradeD = {
 	\	'__CLASS__': 'MasqueradeD',
 	\	'highlight': 0,
@@ -497,13 +515,17 @@ function! s:MasqueradeD(mode, cmd) abort "{{{
 	let editor = s:MasqueradeEditor(a:mode, a:cmd)
 	return s:ClassSys.inherit(d, yank, editor)
 endfunction "}}}
+
 function! s:MasqueradeD.do(item, keyseq) dict abort "{{{
 	let change = s:Multiselect.Change()
 	call change.beforedelete(a:item)
 	let [_, hiitem] = s:ClassSys.super(self, 'MasqueradeYank').do(a:item, a:keyseq)
 	return [change, []]
 endfunction "}}}
+lockvar! s:MasqueradeD
 "}}}
+
+
 
 " !
 function! masquerade#exclamation(mode, cmd, ...) abort "{{{
@@ -523,7 +545,9 @@ function! masquerade#exclamation(mode, cmd, ...) abort "{{{
 	call s:restorecmdhist('input', inputlist)
 	return msqrd.start()
 endfunction "}}}
+
 " MasqueradeExclamation class{{{
+unlockvar! s:MasqueradeExclamation
 let s:MasqueradeExclamation = {
 	\	'__CLASS__': 'MasqueradeExclamation',
 	\	'useregister': s:FALSE,
@@ -533,18 +557,21 @@ function! s:MasqueradeExclamation(mode, cmd) abort "{{{
 	let editor = s:MasqueradeEditor(a:mode, a:cmd)
 	return s:ClassSys.inherit(exclamation, editor)
 endfunction "}}}
+
 function! s:MasqueradeExclamation.do(item, _) dict abort "{{{
 	call a:item.select()
 	execute printf("normal! !%s\<CR>", self.shellcmd)
 	let hiitem = self._hiitem(a:item)
 	return [{}, [hiitem]]
 endfunction "}}}
+
 function! s:MasqueradeExclamation.finish(env) dict abort "{{{
 	if self.dotrepeat is s:FALSE
 		call histadd('cmd', '!' . self.shellcmd)
 	endif
 	call s:ClassSys.super(self, 'MasqueradeEditor').finish(a:env)
 endfunction "}}}
+
 function! s:MasqueradeExclamation._hiitem(item) abort "{{{
 	if self.highlight > 0
 		let head = line("'[")
@@ -555,6 +582,9 @@ function! s:MasqueradeExclamation._hiitem(item) abort "{{{
 	endif
 	return hiitem
 endfunction "}}}
+
+
+
 function! s:setfiltercmdhist() abort "{{{
 	let inputlist = s:getcmdhist('input')
 	let cmdlist = s:getcmdhist('cmd')
@@ -562,6 +592,7 @@ function! s:setfiltercmdhist() abort "{{{
 	call s:restorecmdhist('input', cmdlist)
 	return inputlist
 endfunction "}}}
+
 function! s:restorecmdhist(history, histlist) abort "{{{
 	if empty(a:histlist)
 		return
@@ -571,6 +602,7 @@ function! s:restorecmdhist(history, histlist) abort "{{{
 		call histadd(a:history, histitem)
 	endfor
 endfunction "}}}
+
 function! s:getcmdhist(history) abort "{{{
 	let histlist = []
 	let histnr = histnr(a:history)
@@ -582,7 +614,10 @@ function! s:getcmdhist(history) abort "{{{
 	endfor
 	return histlist
 endfunction "}}}
+lockvar! s:MasqueradeExclamation
 "}}}
+
+
 
 " p
 function! masquerade#p(mode, cmd, ...) abort "{{{
@@ -590,7 +625,9 @@ function! masquerade#p(mode, cmd, ...) abort "{{{
 	let options.Constructor = function('s:MasqueradeP')
 	return masquerade#edit(a:mode, a:cmd, options)
 endfunction "}}}
+
 " MasqueradeP class{{{
+unlockvar! s:MasqueradeP
 let s:MasqueradeP = {
 	\	'__CLASS__': 'MasqueradeP',
 	\	'keepcurpos': s:TRUE,
@@ -602,6 +639,7 @@ function! s:MasqueradeP(mode, cmd) abort "{{{
 	let editor = s:MasqueradeEditor(a:mode, a:cmd)
 	return s:ClassSys.inherit(p, editor)
 endfunction "}}}
+
 function! s:MasqueradeP.update(...) abort "{{{
 	call s:ClassSys.super(self, 'MasqueradeEditor').update()
 	let type = getregtype(self.register)
@@ -609,6 +647,7 @@ function! s:MasqueradeP.update(...) abort "{{{
 	let self.register_contents.saved = [self.register, getreg(self.register, 1), type]
 	let self.register_anonymous.saved = ['"', getreg('"'), getregtype('"')]
 endfunction "}}}
+
 function! s:MasqueradeP.do(item, _) abort "{{{
 	let change = s:Multiselect.Change()
 	call change.beforedelete(a:item)
@@ -620,15 +659,22 @@ function! s:MasqueradeP.do(item, _) abort "{{{
 	let hiitem = self._hiitem(a:item)
 	return [change, [hiitem]]
 endfunction "}}}
+
 function! s:MasqueradeP.finish(env) abort "{{{
 	call s:setregister(self.register_anonymous.saved)
 	call s:setregister(self.register_contents.saved)
 	call s:ClassSys.super(self, 'MasqueradeEditor').finish(a:env)
 endfunction "}}}
+
+
+
 function! s:setregister(register) abort "{{{
 	call call('setreg', a:register)
 endfunction "}}}
+lockvar! s:MasqueradeP
 "}}}
+
+
 
 " i, a, c
 function! masquerade#i(mode, cmd, ...) abort "{{{
@@ -641,6 +687,7 @@ function! masquerade#i(mode, cmd, ...) abort "{{{
 	call i.initialize(options)
 	call i.start()
 endfunction "}}}
+
 function! masquerade#a(mode, cmd, ...) abort "{{{
 	let options = {
 		\ 'keepothers': g:masquerade#keepothers,
@@ -651,6 +698,7 @@ function! masquerade#a(mode, cmd, ...) abort "{{{
 	call a.initialize(options)
 	call a.start()
 endfunction "}}}
+
 function! masquerade#c(mode, cmd, ...) abort "{{{
 	let options = {
 		\ 'keepothers': g:masquerade#keepothers,
@@ -661,7 +709,9 @@ function! masquerade#c(mode, cmd, ...) abort "{{{
 	call c.initialize(options)
 	call c.start()
 endfunction "}}}
+
 " MasqueradeInsert class{{{
+unlockvar! s:MasqueradeInsert
 let s:MasqueradeInsert = {
 	\	'__CLASS__': 'MasqueradeInsert',
 	\	'reserved_itemlist': [],
@@ -671,6 +721,7 @@ let s:MasqueradeInsert = {
 function! s:MasqueradeInsert() abort "{{{
 	return deepcopy(s:MasqueradeInsert)
 endfunction "}}}
+
 function! s:MasqueradeInsert.start() abort "{{{
 	call s:ClassSys.super(self, 'MasqueradeEditor').update()
 	if self.mode is# 'x'
@@ -704,6 +755,7 @@ function! s:MasqueradeInsert.start() abort "{{{
 	call self.aim(firsttarget)
 	call call('feedkeys', self.executekeys())
 endfunction "}}}
+
 function! s:MasqueradeInsert.lastitem() abort "{{{
 	" s:ms.itemlist should not be empty for this method
 	if !empty(self.filter)
@@ -736,11 +788,13 @@ function! s:MasqueradeInsert.lastitem() abort "{{{
 	endif
 	return firsttarget
 endfunction "}}}
+
 function! s:MasqueradeInsert.executekeys() abort "{{{
 	let keyseq = self._buildkeyseq('count', 'register', 'cmd')
 	let flag = self.noremap ? 'in' : 'im'
 	return [keyseq, flag]
 endfunction "}}}
+
 function! s:MasqueradeInsert.update() abort "{{{
 	if self.dotrepeat is s:FALSE
 		" reset skip count set in s:InsertLeave()
@@ -751,12 +805,14 @@ function! s:MasqueradeInsert.update() abort "{{{
 	endif
 	call s:ClassSys.super(self, 'MasqueradeEditor').update()
 endfunction "}}}
+
 function! s:MasqueradeInsert.execute(itemlist) abort "{{{
 	if self.dotrepeat is s:FALSE
 		let self.insertion = @.
 	endif
 	call s:ClassSys.super(self, 'MasqueradeEditor').execute(a:itemlist)
 endfunction "}}}
+
 function! s:MasqueradeInsert._hiitem(item) abort "{{{
 	if self.highlight > 0
 		let head = getpos("'[")
@@ -770,134 +826,7 @@ function! s:MasqueradeInsert._hiitem(item) abort "{{{
 	endif
 	return {}
 endfunction "}}}
-"}}}
-" MasqueradeI class{{{
-let s:MasqueradeI = {
-	\	'__CLASS__': 'MasqueradeI',
-	\	'usecount': s:TRUE,
-	\	'useregister': s:FALSE,
-	\	}
-function! s:MasqueradeI(mode, cmd) abort "{{{
-	let i = deepcopy(s:MasqueradeI)
-	let insert = s:MasqueradeInsert()
-	let editor = s:MasqueradeEditor(a:mode, a:cmd)
-	return s:ClassSys.inherit(i, insert, editor)
-endfunction "}}}
-function! s:MasqueradeI.fallbackkeys() abort "{{{
-	let keyseq = self._buildkeyseq('count', 'register', 'fallback')
-	let flag = self.noremap ? 'in' : 'im'
-	return [keyseq, flag]
-endfunction "}}}
-function! s:MasqueradeI.aim(firsttarget) abort "{{{
-	call setpos('.', a:firsttarget.head)
-	call s:openfolding()
-	let self.curpos = getpos('.')
-	let self.view = winsaveview()
-endfunction "}}}
-function! s:MasqueradeI.do(item, keyseq) abort "{{{
-	let hiitemlist = []
-	if a:item.type is# 'line'
-		let itemlist = reverse(s:splitlines(a:item))
-	elseif a:item.type is# 'block'
-		let itemlist = reverse(s:splitblock(a:item))
-	else
-		let itemlist = [a:item]
-	endif
-	for item in itemlist
-		call setpos('.', item.head)
-		execute a:keyseq . self.insertion
-		let hiitem = self._hiitem(item)
-		call add(hiitemlist, hiitem)
-	endfor
-	return [{}, hiitemlist]
-endfunction "}}}
-"}}}
-" MasqueradeA class{{{
-let s:MasqueradeA = {
-	\	'__CLASS__': 'MasqueradeA',
-	\	'usecount': s:TRUE,
-	\	'useregister': s:FALSE,
-	\	}
-function! s:MasqueradeA(mode, cmd) abort "{{{
-	let a = deepcopy(s:MasqueradeA)
-	let insert = s:MasqueradeInsert()
-	let editor = s:MasqueradeEditor(a:mode, a:cmd)
-	return s:ClassSys.inherit(a, insert, editor)
-endfunction "}}}
-function! s:MasqueradeA.fallbackkeys() abort "{{{
-	let keyseq = self._buildkeyseq('count', 'register', 'fallback')
-	let flag = self.noremap ? 'in' : 'im'
-	return [keyseq, flag]
-endfunction "}}}
-function! s:MasqueradeA.aim(firsttarget) abort "{{{
-	call setpos('.', a:firsttarget.tail)
-	call s:openfolding()
-	let self.curpos = getpos('.')
-	let self.view = winsaveview()
-endfunction "}}}
-function! s:MasqueradeA.do(item, keyseq) abort "{{{
-	let hiitemlist = []
-	if a:item.type is# 'line'
-		let itemlist = reverse(s:splitlines(a:item))
-	elseif a:item.type is# 'block'
-		let itemlist = reverse(s:splitblock(a:item))
-	else
-		let itemlist = [a:item]
-	endif
-	for item in itemlist
-		call setpos('.', item.tail)
-		execute a:keyseq . self.insertion
-		let hiitem = self._hiitem(item)
-		call add(hiitemlist, hiitem)
-	endfor
-	return [{}, [hiitem]]
-endfunction "}}}
-"}}}
-" MasqueradeC class{{{
-let s:MasqueradeC = {
-	\	'__CLASS__': 'MasqueradeC',
-	\	}
-function! s:MasqueradeC(mode, cmd) abort "{{{
-	let c = deepcopy(s:MasqueradeC)
-	let insert = s:MasqueradeInsert()
-	let yank = s:MasqueradeYank()
-	let editor = s:MasqueradeEditor(a:mode, a:cmd)
-	return s:ClassSys.inherit(c, insert, yank, editor)
-endfunction "}}}
-function! s:MasqueradeC.fallbackkeys() abort "{{{
-	if self.mode is# 'x'
-		let keyseq = self._buildkeyseq('gv', 'count', 'register', 'fallback')
-	else
-		let keyseq = self._buildkeyseq('count', 'register', 'fallback')
-	endif
-	let flag = self.noremap ? 'in' : 'im'
-	return [keyseq, flag]
-endfunction "}}}
-function! s:MasqueradeC.aim(firsttarget) abort "{{{
-	call setpos('.', a:firsttarget.head)
-	call s:openfolding()
-	let self.curpos = getpos('.')
-	let self.view = winsaveview()
-	call add(self.yankedlist, a:firsttarget)
-	call a:firsttarget.select()
-endfunction "}}}
-function! s:MasqueradeC.update() abort "{{{
-	if self.dotrepeat is s:FALSE
-		let firsttarget = self.yankedlist[0]
-		let firsttarget.textlist = getreg(self.register, 0, 1)
-	endif
-	call s:ClassSys.super(self, 'MasqueradeInsert').update()
-endfunction "}}}
-function! s:MasqueradeC.do(item, keyseq) abort "{{{
-	let change = s:Multiselect.Change()
-	call change.beforedelete(a:item)
-	let keyseq = a:keyseq . self.insertion
-	call s:ClassSys.super(self, 'MasqueradeYank').do(a:item, keyseq)
-	call change.afterinsert(getpos("'["), getpos("']"), 'char')
-	let hiitem = self._hiitem(a:item)
-	return [change, [hiitem]]
-endfunction "}}}
-"}}}
+
 function! s:InsertLeave() abort "{{{
 	let msqrd = g:masquerade#__CURRENT__
 
@@ -923,6 +852,155 @@ function! s:InsertLeave() abort "{{{
 	endif
 	call feedkeys(countstr . 'g@l', 'in')
 endfunction "}}}
+lockvar! s:MasqueradeInsert
+"}}}
+
+" MasqueradeI class{{{
+unlockvar! s:MasqueradeI
+let s:MasqueradeI = {
+	\	'__CLASS__': 'MasqueradeI',
+	\	'usecount': s:TRUE,
+	\	'useregister': s:FALSE,
+	\	}
+function! s:MasqueradeI(mode, cmd) abort "{{{
+	let i = deepcopy(s:MasqueradeI)
+	let insert = s:MasqueradeInsert()
+	let editor = s:MasqueradeEditor(a:mode, a:cmd)
+	return s:ClassSys.inherit(i, insert, editor)
+endfunction "}}}
+
+function! s:MasqueradeI.fallbackkeys() abort "{{{
+	let keyseq = self._buildkeyseq('count', 'register', 'fallback')
+	let flag = self.noremap ? 'in' : 'im'
+	return [keyseq, flag]
+endfunction "}}}
+
+function! s:MasqueradeI.aim(firsttarget) abort "{{{
+	call setpos('.', a:firsttarget.head)
+	call s:openfolding()
+	let self.curpos = getpos('.')
+	let self.view = winsaveview()
+endfunction "}}}
+
+function! s:MasqueradeI.do(item, keyseq) abort "{{{
+	let hiitemlist = []
+	if a:item.type is# 'line'
+		let itemlist = reverse(s:splitlines(a:item))
+	elseif a:item.type is# 'block'
+		let itemlist = reverse(s:splitblock(a:item))
+	else
+		let itemlist = [a:item]
+	endif
+	for item in itemlist
+		call setpos('.', item.head)
+		execute a:keyseq . self.insertion
+		let hiitem = self._hiitem(item)
+		call add(hiitemlist, hiitem)
+	endfor
+	return [{}, hiitemlist]
+endfunction "}}}
+lockvar! s:MasqueradeI
+"}}}
+
+" MasqueradeA class{{{
+unlockvar! s:MasqueradeA
+let s:MasqueradeA = {
+	\	'__CLASS__': 'MasqueradeA',
+	\	'usecount': s:TRUE,
+	\	'useregister': s:FALSE,
+	\	}
+function! s:MasqueradeA(mode, cmd) abort "{{{
+	let a = deepcopy(s:MasqueradeA)
+	let insert = s:MasqueradeInsert()
+	let editor = s:MasqueradeEditor(a:mode, a:cmd)
+	return s:ClassSys.inherit(a, insert, editor)
+endfunction "}}}
+
+function! s:MasqueradeA.fallbackkeys() abort "{{{
+	let keyseq = self._buildkeyseq('count', 'register', 'fallback')
+	let flag = self.noremap ? 'in' : 'im'
+	return [keyseq, flag]
+endfunction "}}}
+
+function! s:MasqueradeA.aim(firsttarget) abort "{{{
+	call setpos('.', a:firsttarget.tail)
+	call s:openfolding()
+	let self.curpos = getpos('.')
+	let self.view = winsaveview()
+endfunction "}}}
+
+function! s:MasqueradeA.do(item, keyseq) abort "{{{
+	let hiitemlist = []
+	if a:item.type is# 'line'
+		let itemlist = reverse(s:splitlines(a:item))
+	elseif a:item.type is# 'block'
+		let itemlist = reverse(s:splitblock(a:item))
+	else
+		let itemlist = [a:item]
+	endif
+	for item in itemlist
+		call setpos('.', item.tail)
+		execute a:keyseq . self.insertion
+		let hiitem = self._hiitem(item)
+		call add(hiitemlist, hiitem)
+	endfor
+	return [{}, [hiitem]]
+endfunction "}}}
+lockvar! s:MasqueradeA
+"}}}
+
+" MasqueradeC class{{{
+unlockvar! s:MasqueradeC
+let s:MasqueradeC = {
+	\	'__CLASS__': 'MasqueradeC',
+	\	}
+function! s:MasqueradeC(mode, cmd) abort "{{{
+	let c = deepcopy(s:MasqueradeC)
+	let insert = s:MasqueradeInsert()
+	let yank = s:MasqueradeYank()
+	let editor = s:MasqueradeEditor(a:mode, a:cmd)
+	return s:ClassSys.inherit(c, insert, yank, editor)
+endfunction "}}}
+
+function! s:MasqueradeC.fallbackkeys() abort "{{{
+	if self.mode is# 'x'
+		let keyseq = self._buildkeyseq('gv', 'count', 'register', 'fallback')
+	else
+		let keyseq = self._buildkeyseq('count', 'register', 'fallback')
+	endif
+	let flag = self.noremap ? 'in' : 'im'
+	return [keyseq, flag]
+endfunction "}}}
+
+function! s:MasqueradeC.aim(firsttarget) abort "{{{
+	call setpos('.', a:firsttarget.head)
+	call s:openfolding()
+	let self.curpos = getpos('.')
+	let self.view = winsaveview()
+	call add(self.yankedlist, a:firsttarget)
+	call a:firsttarget.select()
+endfunction "}}}
+
+function! s:MasqueradeC.update() abort "{{{
+	if self.dotrepeat is s:FALSE
+		let firsttarget = self.yankedlist[0]
+		let firsttarget.textlist = getreg(self.register, 0, 1)
+	endif
+	call s:ClassSys.super(self, 'MasqueradeInsert').update()
+endfunction "}}}
+
+function! s:MasqueradeC.do(item, keyseq) abort "{{{
+	let change = s:Multiselect.Change()
+	call change.beforedelete(a:item)
+	let keyseq = a:keyseq . self.insertion
+	call s:ClassSys.super(self, 'MasqueradeYank').do(a:item, keyseq)
+	call change.afterinsert(getpos("'["), getpos("']"), 'char')
+	let hiitem = self._hiitem(a:item)
+	return [change, [hiitem]]
+endfunction "}}}
+lockvar! s:MasqueradeC
+"}}}
+
 function! s:splitlines(item) abort "{{{
 	let itemlist = []
 	for lnum in range(a:item.head[1], a:item.tail[1])
@@ -940,6 +1018,7 @@ function! s:splitlines(item) abort "{{{
 	endfor
 	return itemlist
 endfunction "}}}
+
 function! s:splitblock(item) abort "{{{
 	let view = winsaveview()
 	let dispheadcol = virtcol(a:item.head[1:2])
@@ -984,15 +1063,36 @@ function! s:splitblock(item) abort "{{{
 	return itemlist
 endfunction "}}}
 
+
+
 function! s:countstr(count) abort "{{{
 	return a:count ? string(a:count) : ''
 endfunction "}}}
+
 function! s:openfolding() abort "{{{
 	if foldclosed(line('.')) != -1
 		normal! zO
 	endif
 endfunction "}}}
 
+
+
+" highlight group{{{
+let s:HIGROUP = 'MasqueradeChange'
+function! s:default_highlight() abort
+	if hlexists('DiffChange')
+		highlight default link MasqueradeChange DiffChange
+	else
+		highlight default MasqueradeChange cterm=reverse gui=reverse
+	endif
+endfunction
+call s:default_highlight()
+
+augroup masquerade-highlgiht
+	autocmd!
+	autocmd ColorScheme * call s:default_highlight()
+augroup END
+"}}}
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
 " vim:set noet ts=4 sw=4 sts=4:
