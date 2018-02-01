@@ -47,16 +47,6 @@ function! masquerade#operatorfunc(motionwise) abort "{{{
 		call operator.finish(env)
 	endtry
 endfunction "}}}
-function! s:start(mode, msqrd) abort "{{{
-	if a:mode is# 'n'
-		let keyseq = 'g@l'
-	else
-		let keyseq = 'g@'
-	endif
-	let g:masquerade#__CURRENT__ = a:msqrd
-	let &operatorfunc = s:OPERATORFUNC
-	return keyseq
-endfunction "}}}
 
 " highlight group{{{
 let s:HIGROUP = 'MasqueradeChange'
@@ -88,7 +78,7 @@ function! masquerade#edit(mode, cmd, ...) abort "{{{
 	endif
 	let msqrd = options.Constructor(a:mode, a:cmd)
 	call msqrd.initialize(options)
-	return s:start(a:mode, msqrd)
+	return msqrd.start()
 endfunction "}}}
 " MasqueradeEditor class{{{
 let s:MasqueradeEditor = {
@@ -121,6 +111,18 @@ function! s:MasqueradeEditor(mode, cmd) abort "{{{
 	let masquerade.cmd = a:cmd
 	return masquerade
 endfunction "}}}
+
+function! s:MasqueradeEditor.start() abort "{{{
+	let g:masquerade#__CURRENT__ = self
+	let &operatorfunc = s:OPERATORFUNC
+	if self.mode is# 'n'
+		let keyseq = 'g@l'
+	else
+		let keyseq = 'g@'
+	endif
+	return keyseq
+endfunction "}}}
+
 function! s:MasqueradeEditor.initialize(...) abort "{{{
 	let options = get(a:000, 0, {})
 	let self.fallback = get(options, 'fallback', self.cmd)
@@ -519,7 +521,7 @@ function! masquerade#exclamation(mode, cmd, ...) abort "{{{
 	let inputlist = s:setfiltercmdhist()
 	let msqrd.shellcmd = input('!', '', 'shellcmd')
 	call s:restorecmdhist('input', inputlist)
-	return s:start(a:mode, msqrd)
+	return msqrd.start()
 endfunction "}}}
 " MasqueradeExclamation class{{{
 let s:MasqueradeExclamation = {
@@ -698,7 +700,7 @@ function! s:MasqueradeInsert.start() abort "{{{
 					 \.repeat(1)
 					 \.start('InsertLeave')
 
-	call s:start(self.mode, self)
+	call s:ClassSys.super(self, 'MasqueradeEditor').start()
 	call self.aim(firsttarget)
 	call call('feedkeys', self.executekeys())
 endfunction "}}}
