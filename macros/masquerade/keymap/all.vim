@@ -33,10 +33,10 @@ nmap P <Plug>(masquerade-P)
 xmap P <Plug>(masquerade-P)
 
 nmap i <Plug>(masquerade-i)
-xmap I <Plug>(masquerade-i)
+xmap I <Plug>(masquerade-I)
 
 nmap a <Plug>(masquerade-a)
-xmap A <Plug>(masquerade-a)
+xmap A <Plug>(masquerade-A)
 
 map < <Plug>(masquerade-<)
 map > <Plug>(masquerade->)

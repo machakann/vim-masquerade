@@ -66,8 +66,12 @@ function! s:readyformultiselect() abort "{{{
 	xnoremap <silent><expr> <Plug>(masquerade-gP) masquerade#p('x', 'gP')
 	nnoremap <silent> <Plug>(masquerade-i) :<C-u>call masquerade#i('n', 'i')<CR>
 	xnoremap <silent> <Plug>(masquerade-i) <Esc>:call masquerade#i('x', 'i')<CR>
+	nnoremap <silent> <Plug>(masquerade-I) :<C-u>call masquerade#i('n', 'i', {'fallback': 'I'})<CR>
+	xnoremap <silent> <Plug>(masquerade-I) <Esc>:call masquerade#i('x', 'i', {'fallback': 'I'})<CR>
 	nnoremap <silent> <Plug>(masquerade-a) :<C-u>call masquerade#a('n', 'a')<CR>
 	xnoremap <silent> <Plug>(masquerade-a) <Esc>:call masquerade#a('x', 'a')<CR>
+	nnoremap <silent> <Plug>(masquerade-A) :<C-u>call masquerade#a('n', 'a', {'fallback': 'A'})<CR>
+	xnoremap <silent> <Plug>(masquerade-A) <Esc>:call masquerade#a('x', 'a', {'fallback': 'A'})<CR>
 	nnoremap <silent> <Plug>(masquerade-c) :<C-u>call masquerade#c('n', 'c')<CR>
 	xnoremap <silent> <Plug>(masquerade-c) <Esc>:call masquerade#c('x', 'c')<CR>
 	nnoremap <silent> <Plug>(masquerade-C) :<C-u>call masquerade#c('n', 'C', {'keepunedited': 1})<CR>
@@ -104,7 +108,9 @@ else
 	noremap <Plug>(masquerade-gp) gp
 	noremap <Plug>(masquerade-gP) gP
 	noremap <Plug>(masquerade-i) i
+	noremap <Plug>(masquerade-I) I
 	noremap <Plug>(masquerade-a) a
+	noremap <Plug>(masquerade-A) A
 	noremap <Plug>(masquerade-c) c
 	noremap <Plug>(masquerade-C) C
 	noremap <Plug>(masquerade-s) s
