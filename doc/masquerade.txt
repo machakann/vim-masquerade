@@ -1,5 +1,5 @@
 *masquerade.txt*	Tools to edit multiple selections
-						Last change:27-Jan-2018.
+						Last change:02-Feb-2018.
 
 Author  : machakann <https://github.com/machakann>
 License : MIT license
@@ -104,7 +104,7 @@ are the exceptions.
 	a |linewise| text. If there are no selections in the current buffer,
 	it fallbacks to the original command. See |y| and |Y|.
 >
-		map d <Plug>(masquerade-y)
+		map y <Plug>(masquerade-y)
 		nmap Y <Plug>(masquerade-Y)
 		xmap Y <Plug>(masquerade-Y)
 <
@@ -126,7 +126,7 @@ are the exceptions.
 		nmap X <Plug>(masquerade-X)
 		xmap X <Plug>(masquerade-X)
 <
-	The yanked texts are handled like |<Plug>(masquerade-y)|.
+	The deleted texts are handled like |<Plug>(masquerade-y)|.
 
 
 
@@ -138,6 +138,8 @@ are the exceptions.
 	no selections in the current buffer, it fallbacks to the original
 	command. The cursor will be moved to the last one in the all items.
 	 See |c|, |C|, |s| and |S|.
+
+	NOTE: These commands move cursor to the last multiselect item.
 >
 		map c <Plug>(masquerade-c)
 		nmap C <Plug>(masquerade-C)
@@ -145,9 +147,7 @@ are the exceptions.
 		nmap s <Plug>(masquerade-s)
 		xmap s <Plug>(masquerade-s)
 <
-	The yanked texts are handled like |<Plug>(masquerade-y)|.
-
-	NOTE: These commands move cursor to the last multiselect item.
+	The deleted texts are handled like |<Plug>(masquerade-y)|.
 
 
 
@@ -165,10 +165,6 @@ are the exceptions.
 		xmap P <Plug>(masquerade-P)
 		nmap gp <Plug>(masquerade-p)
 		xmap gp <Plug>(masquerade-p)
-		nmap [P <Plug>(masquerade-[P)
-		xmap [P <Plug>(masquerade-[P)
-		nmap ]P <Plug>(masquerade-]P)
-		xmap ]P <Plug>(masquerade-]P)
 <
 	As different from the original commands, the given register is
 	restored after all operation.
@@ -176,10 +172,12 @@ are the exceptions.
 
 
 [count]<Plug>(masquerade-i)		*<Plug>(masquerade-i)*
+[count]<Plug>(masquerade-I)		*<Plug>(masquerade-I)*
 [count]<Plug>(masquerade-a)		*<Plug>(masquerade-a)*
+[count]<Plug>(masquerade-A)		*<Plug>(masquerade-A)*
 	These keymappings insert a text into the head/tail of multi-selected
 	regions. If there are no selections in the current buffer, it
-	fallbacks to the original command. See |i| and |a|.
+	fallbacks to the original command. See |i|, |I|, |a| and |A|.
 
 	NOTE: These commands move cursor to the last multiselect item.
 >
