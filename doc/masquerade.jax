@@ -1,0 +1,287 @@
+*masquerade.txt*	複数選択を編集する
+						Last change:02-Feb-2018.
+
+書いた人  : machakann <https://github.com/machakann>
+ライセンス : MIT license
+Copyright (c) 2017 Masaaki Nakamura {{{
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+}}}
+
+動作要件:
+	Vim 8.0 かそれ以降のバージョン
+	|multiselect.vim|	<https://github.com/machakann/vim-multiselect>
+
+==============================================================================
+目次
+INDEX					*masquerade-index*
+
+序 INTRODUCTION				|masquerade-introduction|
+キーマッピング KEYMAPPINGS		|masquerade-keymappings|
+ハイライトグループ HIGHLIGHT GROUPS	|masquerade-higroups|
+オプション OPTIONS			|masquerade-options|
+
+==============================================================================
+序
+INTRODUCTION				*masquerade-introduction*
+
+*masquerade.vim* は |multiselect.vim| の提供する複数選択機能に対して編集する機
+能を提供します。このプラグインの定義するオペレータは各複数選択にたいし、ビジュ
+アル選択と、もととなったオペレータの適用を繰り返すように動作します。
+
+このプラグインは次のオペレータを提供します。厳密に言えばオペレータ |operator|
+でないものも含みますが、便利なので大丈夫です。
+
+	オリジナル	masquerade オペレータ
+
+	y		<Plug>(masquerade-y)
+	Y		<Plug>(masquerade-Y)
+
+	d		<Plug>(masquerade-d)
+	D		<Plug>(masquerade-D)
+	x		<Plug>(masquerade-x)
+	X		<Plug>(masquerade-X)
+
+	c		<Plug>(masquerade-c)
+	C		<Plug>(masquerade-C)
+	s		<Plug>(masquerade-s)
+	S		<Plug>(masquerade-S)
+
+	p		<Plug>(masquerade-p)
+	P		<Plug>(masquerade-P)
+	gp		<Plug>(masquerade-gp)
+	gP		<Plug>(masquerade-gP)
+
+	i		<Plug>(masquerade-i)
+	a		<Plug>(masquerade-a)
+
+	<		<Plug>(masquerade-<)
+	>		<Plug>(masquerade->)
+
+	g~		<Plug>(masquerade-g~)
+	~		<Plug>(masquerade-~)
+	gu		<Plug>(masquerade-gu)
+	gU		<Plug>(masquerade-gU)
+	g?		<Plug>(masquerade-g?)
+	gq		<Plug>(masquerade-gq)
+	gw		<Plug>(masquerade-gw)
+	=		<Plug>(masquerade-=)
+
+	!		<Plug>(masquerade-!)
+
+==============================================================================
+キーマッピング
+KEYMAPPINGS				*masquerade-keymappings*
+
+これらのキーマッピングは、ノーマルモード |Normal| ではすべての複数選択を、
+ビジュアルモードでは選択範囲内の複数選択にたいして編集を行います。このように
+ビジュアル選択はフィルタのように働き、編集対象とならなかったものは基本的に編集
+後に選択解除されます。ただし、以下のコマンドは編集後も選択解除しません。
+|<Plug>(masquerade-Y)|, |<Plug>(masquerade-D)|, |<Plug>(masquerade-X)|,
+|<Plug>(masquerade-C)|, |<Plug>(masquerade-S)|
+
+
+
+["x]<Plug>(masquerade-y)		*<Plug>(masquerade-y)*
+["x]<Plug>(masquerade-Y)		*<Plug>(masquerade-Y)*
+	複数選択位置をヤンク |yank| します。複数選択位置が文字単位および矩形
+	のみであった場合、ヤンクしたテキストは結合され矩形のテキストとしてレジ
+	スタに収められます。行単位の複数選択を含んでいた場合、テキストは結合さ
+	れ行単位の形式でレジスタに収められます。
+
+	複数選択が存在しない場合は通常の |y| や |Y| のように動作します。 >
+		map y <Plug>(masquerade-y)
+		nmap Y <Plug>(masquerade-Y)
+		xmap Y <Plug>(masquerade-Y)
+<
+
+
+["x]<Plug>(masquerade-d)		*<Plug>(masquerade-d)*
+["x]<Plug>(masquerade-D)		*<Plug>(masquerade-D)*
+["x]<Plug>(masquerade-x)		*<Plug>(masquerade-x)*
+["x]<Plug>(masquerade-X)		*<Plug>(masquerade-X)*
+	複数選択位置を削除します。複数選択が存在しない場合は通常の |d|, |D|,
+	|x|, |X| のように動作します。
+>
+		map d <Plug>(masquerade-d)
+		nmap D <Plug>(masquerade-D)
+		xmap D <Plug>(masquerade-D)
+		nmap x <Plug>(masquerade-x)
+		xmap x <Plug>(masquerade-x)
+		nmap X <Plug>(masquerade-X)
+		xmap X <Plug>(masquerade-X)
+<
+	除去されたテキストは |<Plug>(masquerade-y)| のようにレジスタへ送られま
+	す。
+
+
+
+["x]<Plug>(masquerade-c)		*<Plug>(masquerade-c)*
+["x]<Plug>(masquerade-C)		*<Plug>(masquerade-C)*
+["x]<Plug>(masquerade-s)		*<Plug>(masquerade-s)*
+["x]<Plug>(masquerade-S)		*<Plug>(masquerade-S)*
+	複数選択位置を変更します。複数選択が存在しない場合は通常の |c|, |C|,
+	|s|, |S| のように動作します。
+
+	NOTE: 編集開始時に最末尾の複数選択位置へカーソルが移動します。
+>
+		map c <Plug>(masquerade-c)
+		nmap C <Plug>(masquerade-C)
+		xmap C <Plug>(masquerade-C)
+		nmap s <Plug>(masquerade-s)
+		xmap s <Plug>(masquerade-s)
+<
+	除去されたテキストは |<Plug>(masquerade-y)| のようにレジスタへ送られま
+	す。
+
+
+
+["x]<Plug>(masquerade-p)		*<Plug>(masquerade-p)*
+["x]<Plug>(masquerade-P)		*<Plug>(masquerade-P)*
+["x]<Plug>(masquerade-gp)		*<Plug>(masquerade-gp)*
+["x]<Plug>(masquerade-gP)		*<Plug>(masquerade-gP)*
+	複数選択位置へレジスタのテキストをペーストします。ペースト後にレジスタ
+	は復元されます。複数選択が存在しない場合は通常の |p|, |P|, |gp|, |gP|
+	のように動作します。
+>
+		nmap p <Plug>(masquerade-p)
+		xmap p <Plug>(masquerade-p)
+		nmap P <Plug>(masquerade-P)
+		xmap P <Plug>(masquerade-P)
+		nmap gp <Plug>(masquerade-p)
+		xmap gp <Plug>(masquerade-p)
+<
+
+
+[count]<Plug>(masquerade-i)		*<Plug>(masquerade-i)*
+[count]<Plug>(masquerade-I)		*<Plug>(masquerade-I)*
+[count]<Plug>(masquerade-a)		*<Plug>(masquerade-a)*
+[count]<Plug>(masquerade-A)		*<Plug>(masquerade-A)*
+	複数選択位置の先頭か末尾にテキストを挿入します。複数選択が存在しなけれ
+	ば通常の |i|, |I|, |a|, |A| のように動作します。
+
+	NOTE: 編集開始時に最末尾の複数選択位置へカーソルが移動します。
+>
+		nmap i <Plug>(masquerade-i)
+		xmap I <Plug>(masquerade-I)
+		nmap a <Plug>(masquerade-a)
+		xmap A <Plug>(masquerade-A)
+<
+
+
+[count]<Plug>(masquerade-<)		*<Plug>(masquerade-<)*
+[count]<Plug>(masquerade->)		*<Plug>(masquerade->)*
+	複数選択行のインデントを増減させます。複数選択が存在しなければ通常の
+	|<|, |>| のように動作します。
+>
+		map < <Plug>(masquerade-<)
+		map > <Plug>(masquerade->)
+<
+
+
+<Plug>(masquerade-g~)			*<Plug>(masquerade-g~)*
+<Plug>(masquerade-~)			*<Plug>(masquerade-~)*
+	複数選択されたテキストの大文字小文字を切り替えます。複数選択が存在しな
+	ければ通常の |g~|, |~| のように動作します。
+>
+		map g~ <Plug>(masquerade-g~)
+		map ~ <Plug>(masquerade-~)
+<
+
+
+<Plug>(masquerade-gu)			*<Plug>(masquerade-gu)*
+<Plug>(masquerade-gU)			*<Plug>(masquerade-gU)*
+	複数選択されたテキストを大文字あるいは小文字へ変換します。複数選択が存
+	在しなければ通常の |gu|, |gU| のように動作します。
+>
+		map gu <Plug>(masquerade-gu)
+		map gU <Plug>(masquerade-gU)
+<
+
+
+<Plug>(masquerade-g?)			*<Plug>(masquerade-g?)*
+	複数選択されたテキストを Rot13 エンコードします。複数選択が存在しなけ
+	れば通常の |g?| のように動作します。
+>
+		map g? <Plug>(masquerade-g?)
+<
+
+
+<Plug>(masquerade-gq)			*<Plug>(masquerade-gq)*
+<Plug>(masquerade-gw)			*<Plug>(masquerade-gw)*
+	複数選択された行の整形を行います。複数選択が存在しなければ通常の |gq|,
+	|gw| のように動作します。
+>
+		map gq <Plug>(masquerade-gq)
+		map gw <Plug>(masquerade-gw)
+<
+
+
+<Plug>(masquerade-=)			*<Plug>(masquerade-=)*
+	複数選択された行を 'equalprg' に指定されたプログラムでフィルタします。
+	複数選択が存在しなければ通常の |=| のように動作します。
+>
+		map = <Plug>(masquerade-=)
+<
+
+
+<Plug>(masquerade-!){filter}			*<Plug>(masquerade-!)*
+	複数選択された行を外部プログラムでフィルタします。複数選択が存在しなけ
+	れば通常の |!| のように動作します。
+>
+		map ! <Plug>(masquerade-!)
+<
+
+
+==============================================================================
+ハイライトグループ
+HIGHLIGHT GROUPS			*masquerade-higroups*
+
+MasqueradeChange			*hl-MasqueradeChange*
+	変更されたテキストにたいして適用されるハイライトグループです。
+	デフォルトでは |hl-DiffChange| にリンクされています。 >
+		highlight default link MasqueradeChange DiffChange
+<
+	|:highlight| コマンドを使うことで色を変更できます。 >
+		highlight MultiselectItem ctermfg=White ctermbg=Red
+		                               \ guifg=White   guibg=Red
+<
+
+==============================================================================
+オプション
+OPTIONS					*masquerade-options*
+
+g:masquerade#highlight			*g:masquerade#highlight*
+	変更位置のハイライト時間を制御します。ミリ秒単位の時間を指定してくださ
+	い。 >
+		let g:masquerade#highlight = 300
+<
+	デフォルト値は 300 です。 0 以下を指定するとハイライトは行われません。
+
+
+g:masquerade#keepothers			*g:masquerade#keepothers*
+	このオプションが真 |TRUE| ならビジュアル選択フィルタによって処理されな
+	かった複数選択要素の選択解除が行われません。デフォルト値は偽 |FALSE|
+	です。 >
+		let g:masquerade#keepothers = 1
+<
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:noet::fdl=0:fen:fdm=marker:noet:
