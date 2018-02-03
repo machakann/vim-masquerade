@@ -1,5 +1,5 @@
 *masquerade.txt*	複数選択を編集する
-						Last change:02-Feb-2018.
+						Last change:04-Feb-2018.
 
 書いた人  : machakann <https://github.com/machakann>
 ライセンス : MIT license
@@ -34,6 +34,7 @@ INDEX					*masquerade-index*
 
 序 INTRODUCTION				|masquerade-introduction|
 キーマッピング KEYMAPPINGS		|masquerade-keymappings|
+コマンド COMMANDS			|masquerade-commands|
 ハイライトグループ HIGHLIGHT GROUPS	|masquerade-higroups|
 オプション OPTIONS			|masquerade-options|
 
@@ -247,6 +248,17 @@ KEYMAPPINGS				*masquerade-keymappings*
 >
 		map ! <Plug>(masquerade-!)
 <
+
+
+==============================================================================
+コマンド
+COMMANDS				*masquerade-commands*
+
+:MasqueradeOff				*:MasqueradeOff*
+	キーマッピングの特殊な機能を停止し、通常のコマンドへ戻します。
+
+:MasqueradeOn				*:MasqueradeOn*
+	キーマッピングの特殊な機能を有効にします。
 
 
 ==============================================================================

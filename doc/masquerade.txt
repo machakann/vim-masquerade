@@ -1,5 +1,5 @@
 *masquerade.txt*	Tools to edit multiple selections
-						Last change:02-Feb-2018.
+						Last change:04-Feb-2018.
 
 Author  : machakann <https://github.com/machakann>
 License : MIT license
@@ -33,6 +33,7 @@ INDEX					*masquerade-index*
 
 INTRODUCTION				|masquerade-introduction|
 KEYMAPPINGS				|masquerade-keymappings|
+COMMANDS				|masquerade-commands|
 HIGHLIGHT GROUPS			|masquerade-higroups|
 OPTIONS					|masquerade-options|
 
@@ -257,6 +258,17 @@ are the exceptions.
 >
 		map ! <Plug>(masquerade-!)
 <
+
+
+==============================================================================
+COMMANDS				*masquerade-commands*
+
+:MasqueradeOff				*:MasqueradeOff*
+	This command disables the masquerade keymappings. These keys are
+	fallen back to the original commands.
+
+:MasqueradeOn				*:MasqueradeOn*
+	This command enables the masquerade keymappings.
 
 
 ==============================================================================

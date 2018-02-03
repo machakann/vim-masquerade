@@ -5,6 +5,38 @@ if &compatible || exists("g:loaded_masquerade")
 endif
 let g:loaded_masquerade = 1
 
+function! s:defaultoperators() abort "{{{
+	noremap <Plug>(masquerade-g~) g~
+	noremap <Plug>(masquerade-~) ~
+	noremap <Plug>(masquerade-gu) gu
+	noremap <Plug>(masquerade-gU) gU
+	noremap <Plug>(masquerade-g?) g?
+	noremap <Plug>(masquerade-gq) gq
+	noremap <Plug>(masquerade-gw) gw
+	noremap <Plug>(masquerade-=) =
+	noremap <Plug>(masquerade-<) <
+	noremap <Plug>(masquerade->) >
+	noremap <Plug>(masquerade-y) y
+	noremap <Plug>(masquerade-Y) Y
+	noremap <Plug>(masquerade-d) d
+	noremap <Plug>(masquerade-D) D
+	noremap <Plug>(masquerade-x) x
+	noremap <Plug>(masquerade-X) X
+	noremap <Plug>(masquerade-!) !
+	noremap <Plug>(masquerade-p) p
+	noremap <Plug>(masquerade-P) P
+	noremap <Plug>(masquerade-gp) gp
+	noremap <Plug>(masquerade-gP) gP
+	noremap <Plug>(masquerade-i) i
+	noremap <Plug>(masquerade-I) I
+	noremap <Plug>(masquerade-a) a
+	noremap <Plug>(masquerade-A) A
+	noremap <Plug>(masquerade-c) c
+	noremap <Plug>(masquerade-C) C
+	noremap <Plug>(masquerade-s) s
+	noremap <Plug>(masquerade-S) S
+endfunction "}}}
+
 function! s:readyformultiselect() abort "{{{
 	nnoremap <silent><expr> <Plug>(masquerade-g~) masquerade#edit('n', 'g~', {'useregister': 0})
 	xnoremap <silent><expr> <Plug>(masquerade-g~) masquerade#edit('x', 'g~', {'useregister': 0})
@@ -86,41 +118,16 @@ endfunction "}}}
 if exists('*multiselect#import')
 	call s:readyformultiselect()
 else
-	noremap <Plug>(masquerade-g~) g~
-	noremap <Plug>(masquerade-~) ~
-	noremap <Plug>(masquerade-gu) gu
-	noremap <Plug>(masquerade-gU) gU
-	noremap <Plug>(masquerade-g?) g?
-	noremap <Plug>(masquerade-gq) gq
-	noremap <Plug>(masquerade-gw) gw
-	noremap <Plug>(masquerade-=) =
-	noremap <Plug>(masquerade-<) <
-	noremap <Plug>(masquerade->) >
-	noremap <Plug>(masquerade-y) y
-	noremap <Plug>(masquerade-Y) Y
-	noremap <Plug>(masquerade-d) d
-	noremap <Plug>(masquerade-D) D
-	noremap <Plug>(masquerade-x) x
-	noremap <Plug>(masquerade-X) X
-	noremap <Plug>(masquerade-!) !
-	noremap <Plug>(masquerade-p) p
-	noremap <Plug>(masquerade-P) P
-	noremap <Plug>(masquerade-gp) gp
-	noremap <Plug>(masquerade-gP) gP
-	noremap <Plug>(masquerade-i) i
-	noremap <Plug>(masquerade-I) I
-	noremap <Plug>(masquerade-a) a
-	noremap <Plug>(masquerade-A) A
-	noremap <Plug>(masquerade-c) c
-	noremap <Plug>(masquerade-C) C
-	noremap <Plug>(masquerade-s) s
-	noremap <Plug>(masquerade-S) S
+	call s:defaultoperators()
 
 	augroup masquerade-keymapping
 		autocmd!
 		autocmd User MultiselectEnter call s:readyformultiselect()
 	augroup END
 endif
+
+command! -nargs=0 MasqueradeOff call s:defaultoperators()
+command! -nargs=0 MasqueradeOn  call s:readyformultiselect()
 " vim:set foldmethod=marker:
 " vim:set commentstring="%s:
 " vim:set noet ts=4 sw=4 sts=4:
