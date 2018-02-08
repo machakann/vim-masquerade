@@ -756,6 +756,16 @@ function! s:MasqueradeInsert.start() abort "{{{
 	call call('feedkeys', self.executekeys())
 endfunction "}}}
 
+function! s:MasqueradeInsert.fallbackkeys() abort "{{{
+	if self.mode is# 'x'
+		let keyseq = self._buildkeyseq('gv', 'count', 'register', 'fallback')
+	else
+		let keyseq = self._buildkeyseq('count', 'register', 'fallback')
+	endif
+	let flag = self.remap ? 'im' : 'in'
+	return [keyseq, flag]
+endfunction "}}}
+
 function! s:MasqueradeInsert.lastitem() abort "{{{
 	" s:ms.itemlist should not be empty for this method
 	if !empty(self.filter)
@@ -869,12 +879,6 @@ function! s:MasqueradeI(mode, cmd) abort "{{{
 	return s:ClassSys.inherit(i, insert, editor)
 endfunction "}}}
 
-function! s:MasqueradeI.fallbackkeys() abort "{{{
-	let keyseq = self._buildkeyseq('count', 'register', 'fallback')
-	let flag = self.remap ? 'im' : 'in'
-	return [keyseq, flag]
-endfunction "}}}
-
 function! s:MasqueradeI.aim(firsttarget) abort "{{{
 	call setpos('.', a:firsttarget.head)
 	call s:openfolding()
@@ -916,12 +920,6 @@ function! s:MasqueradeA(mode, cmd) abort "{{{
 	return s:ClassSys.inherit(a, insert, editor)
 endfunction "}}}
 
-function! s:MasqueradeA.fallbackkeys() abort "{{{
-	let keyseq = self._buildkeyseq('count', 'register', 'fallback')
-	let flag = self.remap ? 'im' : 'in'
-	return [keyseq, flag]
-endfunction "}}}
-
 function! s:MasqueradeA.aim(firsttarget) abort "{{{
 	call setpos('.', a:firsttarget.tail)
 	call s:openfolding()
@@ -960,16 +958,6 @@ function! s:MasqueradeC(mode, cmd) abort "{{{
 	let yank = s:MasqueradeYank()
 	let editor = s:MasqueradeEditor(a:mode, a:cmd)
 	return s:ClassSys.inherit(c, insert, yank, editor)
-endfunction "}}}
-
-function! s:MasqueradeC.fallbackkeys() abort "{{{
-	if self.mode is# 'x'
-		let keyseq = self._buildkeyseq('gv', 'count', 'register', 'fallback')
-	else
-		let keyseq = self._buildkeyseq('count', 'register', 'fallback')
-	endif
-	let flag = self.remap ? 'im' : 'in'
-	return [keyseq, flag]
 endfunction "}}}
 
 function! s:MasqueradeC.aim(firsttarget) abort "{{{
