@@ -20,8 +20,12 @@ endfunction
 let s:SID = printf("\<SNR>%s_", s:SID())
 delfunction s:SID
 noremap <SID>(gv) gv
+noremap <SID>(g@) g@
+noremap <SID>(g@l) g@l
 noremap <SID>(doublequote) "
 let s:GV = s:SID . '(gv)'
+let s:GAT = s:SID . '(g@)'
+let s:GATL = s:SID . '(g@l)'
 let s:DOUBLEQUOTE = s:SID . '(doublequote)'
 
 let g:masquerade#keepothers = !!get(g:, 'masquerade#keepothers', s:FALSE)
@@ -48,6 +52,20 @@ function! masquerade#operatorfunc(motionwise) abort "{{{
 	endtry
 endfunction "}}}
 
+let s:count = 0
+let s:count1 = 1
+let s:register = v:register
+let s:curpos = [0, 0, 0, 0]
+let s:view = {}
+function! masquerade#capture() abort "{{{
+	let s:count = v:count
+	let s:count1 = v:count1
+	let s:register = v:register
+	let s:curpos = getpos('.')
+	let s:view = {}
+	return ''
+endfunction "}}}
+
 function! masquerade#edit(mode, cmd, ...) abort "{{{
 	let options = {
 		\ 'keepothers': g:masquerade#keepothers,
@@ -55,13 +73,13 @@ function! masquerade#edit(mode, cmd, ...) abort "{{{
 		\ 'Constructor': function('s:MasqueradeEditor'),
 		\ }
 	call extend(options, get(a:000, 0, {}), 'force')
-	if s:ms.isempty()
-		let fallback = get(options, 'fallback', a:cmd)
-		return fallback
-	endif
 	let msqrd = options.Constructor(a:mode, a:cmd)
 	call msqrd.initialize(options)
-	return msqrd.start()
+	if s:ms.isempty()
+		call msqrd._fallbackkeys()
+		return
+	endif
+	call msqrd.start()
 endfunction "}}}
 
 " MasqueradeEditor class{{{
@@ -100,31 +118,27 @@ endfunction "}}}
 function! s:MasqueradeEditor.start() abort "{{{
 	let g:masquerade#__CURRENT__ = self
 	let &operatorfunc = s:OPERATORFUNC
-	if self.mode is# 'n'
-		let keyseq = 'g@l'
-	else
-		let keyseq = 'g@'
-	endif
-	return keyseq
+	call self._startkeys()
 endfunction "}}}
 
 function! s:MasqueradeEditor.initialize(...) abort "{{{
 	let options = get(a:000, 0, {})
 	let self.fallback = get(options, 'fallback', self.cmd)
-	let self.register = v:register
-	let self.curpos = getpos('.')
-	let self.view = winsaveview()
+	let self.count = s:count
+	let self.count1 = s:count1
+	let self.register = s:register
+	let self.curpos = s:curpos
+	let self.view = s:view
 	call self._setopt(options, 'highlight')
 	call self._setboolopt(options, 'remap')
 	call self._setboolopt(options, 'keepcurpos')
 	call self._setboolopt(options, 'keepothers')
 	call self._setboolopt(options, 'usecount')
 	call self._setboolopt(options, 'useregister')
+	let self.remapfallback = get(options, 'remapfallback', self.remap)
 endfunction "}}}
 
 function! s:MasqueradeEditor.update() abort "{{{
-	let self.count = v:count
-	let self.count1 = v:count1
 	if self.dotrepeat is s:FALSE
 		if self.mode is# 'x'
 			let start = getpos("'<")
@@ -133,6 +147,8 @@ function! s:MasqueradeEditor.update() abort "{{{
 			let self.filter = s:getfilter(start, end, type)
 		endif
 	else
+		let self.count = v:count
+		let self.count1 = v:count1
 		let self.curpos = getpos('.')
 		let self.view = winsaveview()
 		if self.mode is# 'x'
@@ -175,9 +191,9 @@ function! s:MasqueradeEditor.execute(itemlist) abort "{{{
 		call s:ms.sort(a:itemlist)
 	endif
 
-	let keyseq = self._buildkeyseq()
+	let cmd = self._docmd()
 	for item in reverse(a:itemlist)
-		let [change, hiitemlist] = self.do(item, keyseq)
+		let [change, hiitemlist] = self.do(item, cmd)
 
 		if self.keepcurpos
 			call s:shiftcurpos(self.curpos, change)
@@ -197,9 +213,9 @@ function! s:MasqueradeEditor.execute(itemlist) abort "{{{
 	call self.show()
 endfunction "}}}
 
-function! s:MasqueradeEditor.do(item, keyseq, ...) abort "{{{
+function! s:MasqueradeEditor.do(item, cmd, ...) abort "{{{
 	call a:item.select()
-	execute a:keyseq
+	execute a:cmd
 	let hiitem = self._hiitem(a:item)
 	return [{}, [hiitem]]
 endfunction "}}}
@@ -262,63 +278,87 @@ endfunction "}}}
 
 
 
-let s:DEFAULTORDER = ['normal', 'count', 'register', 'cmd']
-function! s:MasqueradeEditor._buildkeyseq(...) abort "{{{
-	let order = a:0 ? a:000 : s:DEFAULTORDER
-
-	if count(order, 'normal') > 0
-		let normal = 'noautocmd normal'
-		if self.remap is s:TRUE
-			let bang = ''
-		else
-			let bang = '!'
+function! s:MasqueradeEditor._fallbackkeys() abort "{{{
+	let keyseq = ''
+	if self.remapfallback is s:TRUE
+		if self.mode is# 'x'
+			let keyseq .= s:GV
 		endif
-		let normal .= bang
-		let normal .= ' '
+		let keyseq .= s:countstr(self.count)
+		let keyseq .= s:DOUBLEQUOTE . self.register
+		let keyseq .= self.fallback
+		let flag = 'im'
 	else
-		let normal = ''
-	endif
-
-	if count(order, 'count') > 0 && self.usecount is s:TRUE
-		let countstr = s:countstr(self.count)
-	else
-		let countstr = ''
-	endif
-
-	if count(order, 'register') > 0 && self.useregister
-		let register = ''
-		if self.remap is s:TRUE
-			let dq = s:DOUBLEQUOTE
-		else
-			let dq = '"'
+		if self.mode is# 'x'
+			let keyseq .= 'gv'
 		endif
-		let register .= dq
-		let register .= self.register
-	else
-		let register = ''
+		let keyseq .= s:countstr(self.count)
+		let keyseq .= '"' . self.register
+		let keyseq .= self.fallback
+		let flag = 'in'
 	endif
+	call feedkeys(keyseq, flag)
+endfunction "}}}
 
-	if count(order, 'gv') > 0
-		if self.remap is s:TRUE
-			let gv = s:GV
+function! s:MasqueradeEditor._startkeys() abort "{{{
+	let keyseq = ''
+	if self.remap is s:TRUE
+		if self.mode is# 'x'
+			let keyseq .= s:GV
+		endif
+		if self.usecount is s:TRUE
+			let keyseq .= s:countstr(self.count)
+		endif
+		if self.useregister is s:TRUE
+			let keyseq .= s:DOUBLEQUOTE . self.register
+		endif
+		if self.mode is# 'x'
+			let keyseq .= s:GAT
 		else
-			let gv = 'gv'
+			let keyseq .= s:GATL
+		endif
+		let flag = 'im'
+	else
+		if self.mode is# 'x'
+			let keyseq .= 'gv'
+		endif
+		if self.usecount is s:TRUE
+			let keyseq .= s:countstr(self.count)
+		endif
+		if self.useregister is s:TRUE
+			let keyseq .= '"' . self.register
+		endif
+		if self.mode is# 'x'
+			let keyseq .= 'g@'
+		else
+			let keyseq .= 'g@l'
+		endif
+		let flag = 'in'
+	endif
+	call feedkeys(keyseq, flag)
+endfunction "}}}
+
+function! s:MasqueradeEditor._docmd() abort "{{{
+	let cmd = 'noautocmd normal'
+	if self.remap is s:TRUE
+		let cmd .= ' '
+		if self.usecount is s:TRUE
+			let cmd .= s:countstr(self.count)
+		endif
+		if self.useregister is s:TRUE
+			let cmd .= s:DOUBLEQUOTE . self.register
 		endif
 	else
-		let gv = ''
-	endif
-
-	if count(order, 'cmd') > 0
-		let cmd = self.cmd
-	else
-		if count(order, 'fallback') > 0
-			let cmd = self.fallback
-		else
-			let cmd = ''
+		let cmd .= '! '
+		if self.usecount is s:TRUE
+			let cmd .= s:countstr(self.count)
+		endif
+		if self.useregister is s:TRUE
+			let cmd .= '"' . self.register
 		endif
 	endif
-
-	return printf('%s%s%s%s%s', normal, gv, countstr, register, cmd)
+	let cmd .= self.cmd
+	return cmd
 endfunction "}}}
 
 function! s:MasqueradeEditor._hiitem(item) abort "{{{
@@ -453,9 +493,9 @@ function! s:MasqueradeYank() abort "{{{
 	return deepcopy(s:MasqueradeYank)
 endfunction "}}}
 
-function! s:MasqueradeYank.do(item, keyseq) abort "{{{
+function! s:MasqueradeYank.do(item, cmd) abort "{{{
 	call a:item.select()
-	execute a:keyseq
+	execute a:cmd
 	let a:item.textlist = getreg(self.register, 0, 1)
 	call add(self.yankedlist, a:item)
 	let hiitem = self._hiitem(a:item)
@@ -516,10 +556,10 @@ function! s:MasqueradeD(mode, cmd) abort "{{{
 	return s:ClassSys.inherit(d, yank, editor)
 endfunction "}}}
 
-function! s:MasqueradeD.do(item, keyseq) dict abort "{{{
+function! s:MasqueradeD.do(item, cmd) dict abort "{{{
 	let change = s:Multiselect.Change()
 	call change.beforedelete(a:item)
-	let [_, hiitem] = s:ClassSys.super(self, 'MasqueradeYank').do(a:item, a:keyseq)
+	let [_, hiitem] = s:ClassSys.super(self, 'MasqueradeYank').do(a:item, a:cmd)
 	return [change, []]
 endfunction "}}}
 lockvar! s:MasqueradeD
@@ -534,16 +574,16 @@ function! masquerade#exclamation(mode, cmd, ...) abort "{{{
 		\ 'highlight': g:masquerade#highlight,
 		\ }
 	call extend(options, get(a:000, 0, {}), 'force')
-	if s:ms.isempty()
-		let fallback = get(options, 'fallback', a:cmd)
-		return fallback
-	endif
 	let msqrd = s:MasqueradeExclamation(a:mode, a:cmd)
 	call msqrd.initialize(options)
+	if s:ms.isempty()
+		call msqrd._fallbackkeys()
+		return
+	endif
 	let inputlist = s:setfiltercmdhist()
 	let msqrd.shellcmd = input('!', '', 'shellcmd')
 	call s:restorecmdhist('input', inputlist)
-	return msqrd.start()
+	call msqrd.start()
 endfunction "}}}
 
 " MasqueradeExclamation class{{{
@@ -724,21 +764,14 @@ endfunction "}}}
 
 function! s:MasqueradeInsert.start() abort "{{{
 	call s:ClassSys.super(self, 'MasqueradeEditor').update()
-	if self.mode is# 'x'
-		let self.count = v:prevcount
-		let self.count1 = self.count ? self.count : 1
-	else
-		let self.count = v:count
-		let self.count1 = v:count1
-	endif
 	if s:ms.isempty()
-		call call('feedkeys', self.fallbackkeys())
+		call self._fallbackkeys()
 		return
 	endif
 
 	let firsttarget = self.lastitem()
 	if empty(firsttarget)
-		call call('feedkeys', self.fallbackkeys())
+		call self._fallbackkeys()
 		return
 	endif
 
@@ -751,19 +784,8 @@ function! s:MasqueradeInsert.start() abort "{{{
 					 \.repeat(1)
 					 \.start('InsertLeave')
 
-	call s:ClassSys.super(self, 'MasqueradeEditor').start()
 	call self.aim(firsttarget)
-	call call('feedkeys', self.executekeys())
-endfunction "}}}
-
-function! s:MasqueradeInsert.fallbackkeys() abort "{{{
-	if self.mode is# 'x'
-		let keyseq = self._buildkeyseq('gv', 'count', 'register', 'fallback')
-	else
-		let keyseq = self._buildkeyseq('count', 'register', 'fallback')
-	endif
-	let flag = self.remap ? 'im' : 'in'
-	return [keyseq, flag]
+	call s:ClassSys.super(self, 'MasqueradeEditor').start()
 endfunction "}}}
 
 function! s:MasqueradeInsert.lastitem() abort "{{{
@@ -799,12 +821,6 @@ function! s:MasqueradeInsert.lastitem() abort "{{{
 	return firsttarget
 endfunction "}}}
 
-function! s:MasqueradeInsert.executekeys() abort "{{{
-	let keyseq = self._buildkeyseq('count', 'register', 'cmd')
-	let flag = self.remap ? 'im' : 'in'
-	return [keyseq, flag]
-endfunction "}}}
-
 function! s:MasqueradeInsert.update() abort "{{{
 	if self.dotrepeat is s:FALSE
 		" reset skip count set in s:InsertLeave()
@@ -821,6 +837,29 @@ function! s:MasqueradeInsert.execute(itemlist) abort "{{{
 		let self.insertion = @.
 	endif
 	call s:ClassSys.super(self, 'MasqueradeEditor').execute(a:itemlist)
+endfunction "}}}
+
+function! s:MasqueradeInsert._startkeys() abort "{{{
+	let keyseq = ''
+	if self.remap is s:TRUE
+		if self.usecount is s:TRUE
+			let keyseq .= s:countstr(self.count)
+		endif
+		if self.useregister is s:TRUE
+			let keyseq .= s:DOUBLEQUOTE . self.register
+		endif
+		let flag = 'im'
+	else
+		if self.usecount is s:TRUE
+			let keyseq .= s:countstr(self.count)
+		endif
+		if self.useregister is s:TRUE
+			let keyseq .= '"' . self.register
+		endif
+		let flag = 'in'
+	endif
+	let keyseq .= self.cmd
+	call feedkeys(keyseq, flag)
 endfunction "}}}
 
 function! s:MasqueradeInsert._hiitem(item) abort "{{{
@@ -886,7 +925,7 @@ function! s:MasqueradeI.aim(firsttarget) abort "{{{
 	let self.view = winsaveview()
 endfunction "}}}
 
-function! s:MasqueradeI.do(item, keyseq) abort "{{{
+function! s:MasqueradeI.do(item, cmd) abort "{{{
 	let hiitemlist = []
 	if a:item.type is# 'line'
 		let itemlist = reverse(s:splitlines(a:item))
@@ -897,7 +936,7 @@ function! s:MasqueradeI.do(item, keyseq) abort "{{{
 	endif
 	for item in itemlist
 		call setpos('.', item.head)
-		execute a:keyseq . self.insertion
+		execute a:cmd . self.insertion
 		let hiitem = self._hiitem(item)
 		call add(hiitemlist, hiitem)
 	endfor
@@ -927,7 +966,7 @@ function! s:MasqueradeA.aim(firsttarget) abort "{{{
 	let self.view = winsaveview()
 endfunction "}}}
 
-function! s:MasqueradeA.do(item, keyseq) abort "{{{
+function! s:MasqueradeA.do(item, cmd) abort "{{{
 	let hiitemlist = []
 	if a:item.type is# 'line'
 		let itemlist = reverse(s:splitlines(a:item))
@@ -938,7 +977,7 @@ function! s:MasqueradeA.do(item, keyseq) abort "{{{
 	endif
 	for item in itemlist
 		call setpos('.', item.tail)
-		execute a:keyseq . self.insertion
+		execute a:cmd . self.insertion
 		let hiitem = self._hiitem(item)
 		call add(hiitemlist, hiitem)
 	endfor
@@ -977,11 +1016,11 @@ function! s:MasqueradeC.update() abort "{{{
 	call s:ClassSys.super(self, 'MasqueradeInsert').update()
 endfunction "}}}
 
-function! s:MasqueradeC.do(item, keyseq) abort "{{{
+function! s:MasqueradeC.do(item, cmd) abort "{{{
 	let change = s:Multiselect.Change()
 	call change.beforedelete(a:item)
-	let keyseq = a:keyseq . self.insertion
-	call s:ClassSys.super(self, 'MasqueradeYank').do(a:item, keyseq)
+	let cmd = a:cmd . self.insertion
+	call s:ClassSys.super(self, 'MasqueradeYank').do(a:item, cmd)
 	call change.afterinsert(getpos("'["), getpos("']"), 'char')
 	let hiitem = self._hiitem(a:item)
 	return [change, [hiitem]]
