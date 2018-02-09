@@ -183,6 +183,7 @@ function! s:MasqueradeEditor.execute(itemlist) abort "{{{
 			call s:shiftcurpos(self.curpos, change)
 		endif
 
+		call filter(hiitemlist, '!empty(v:val)')
 		if self.highlight > 0
 			call s:shiftitems(self._hiitemlist, change)
 			if !empty(hiitemlist)
@@ -219,7 +220,8 @@ function! s:MasqueradeEditor.finish(env) abort "{{{
 		call s:restoreenv(a:env)
 	endif
 
-	if self.highlight > 0
+	call filter(self._hiitemlist, '!empty(v:val)')
+	if self.highlight > 0 && !empty(self._hiitemlist)
 		let racetask = s:Multiselect.RaceTask().repeat(1)
 		for hiitem in self._hiitemlist
 			call racetask.call(hiitem.quench, [], hiitem)
