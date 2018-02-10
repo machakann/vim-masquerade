@@ -5,6 +5,83 @@ if &compatible || exists("g:loaded_masquerade")
 endif
 let g:loaded_masquerade = 1
 
+nnoremap <expr> <SID>(capture) masquerade#capture()
+xnoremap <expr> <SID>(capture) masquerade#capture()
+onoremap <expr> <SID>(capture) ''
+
+nnoremap <silent> <SID>(masquerade-g~) :<C-u>call masquerade#edit('n', 'g~', {'useregister': 0})<CR>
+xnoremap <silent> <SID>(masquerade-g~) :<C-u>call masquerade#edit('x', 'g~', {'useregister': 0})<CR>
+onoremap <SID>(masquerade-g~) g~
+nnoremap <silent> <SID>(masquerade-~) :<C-u>call masquerade#edit('n', '~', {'useregister': 0})<CR>
+xnoremap <silent> <SID>(masquerade-~) :<C-u>call masquerade#edit('x', '~', {'useregister': 0})<CR>
+onoremap <SID>(masquerade-~) ~
+nnoremap <silent> <SID>(masquerade-gu) :<C-u>call masquerade#edit('n', 'gu', {'useregister': 0})<CR>
+xnoremap <silent> <SID>(masquerade-gu) :<C-u>call masquerade#edit('x', 'gu', {'useregister': 0})<CR>
+onoremap <SID>(masquerade-gu) gu
+nnoremap <silent> <SID>(masquerade-gU) :<C-u>call masquerade#edit('n', 'gU', {'useregister': 0})<CR>
+xnoremap <silent> <SID>(masquerade-gU) :<C-u>call masquerade#edit('x', 'gU', {'useregister': 0})<CR>
+onoremap <SID>(masquerade-gU) gU
+nnoremap <silent> <SID>(masquerade-g?) :<C-u>call masquerade#edit('n', 'g?', {'useregister': 0})<CR>
+xnoremap <silent> <SID>(masquerade-g?) :<C-u>call masquerade#edit('x', 'g?', {'useregister': 0})<CR>
+onoremap <SID>(masquerade-g?) g?
+nnoremap <silent> <SID>(masquerade-gq) :<C-u>call masquerade#edit('n', 'gq', {'useregister': 0})<CR>
+xnoremap <silent> <SID>(masquerade-gq) :<C-u>call masquerade#edit('x', 'gq', {'useregister': 0})<CR>
+onoremap <SID>(masquerade-gq) gq
+nnoremap <silent> <SID>(masquerade-gw) :<C-u>call masquerade#edit('n', 'gw', {'useregister': 0})<CR>
+xnoremap <silent> <SID>(masquerade-gw) :<C-u>call masquerade#edit('x', 'gw', {'useregister': 0})<CR>
+onoremap <SID>(masquerade-gw) gw
+nnoremap <silent> <SID>(masquerade-=) :<C-u>call masquerade#edit('n', '=', {'useregister': 0})<CR>
+xnoremap <silent> <SID>(masquerade-=) :<C-u>call masquerade#edit('x', '=', {'useregister': 0})<CR>
+onoremap <SID>(masquerade-=) =
+nnoremap <silent> <SID>(masquerade-<) :<C-u>call masquerade#edit('n', '<', {'usecount': 1, 'useregister': 0})<CR>
+xnoremap <silent> <SID>(masquerade-<) :<C-u>call masquerade#edit('x', '<', {'usecount': 1, 'useregister': 0})<CR>
+onoremap <SID>(masquerade-<) <
+nnoremap <silent> <SID>(masquerade->) :<C-u>call masquerade#edit('n', '>', {'usecount': 1, 'useregister': 0})<CR>
+xnoremap <silent> <SID>(masquerade->) :<C-u>call masquerade#edit('x', '>', {'usecount': 1, 'useregister': 0})<CR>
+onoremap <SID>(masquerade->) >
+nnoremap <silent> <SID>(masquerade-y) :<C-u>call masquerade#y('n', 'y')<CR>
+xnoremap <silent> <SID>(masquerade-y) :<C-u>call masquerade#y('x', 'y')<CR>
+onoremap <SID>(masquerade-y) y
+nnoremap <silent> <SID>(masquerade-Y) :<C-u>call masquerade#y('n', 'Y', {'keepunedited': 1})<CR>
+xnoremap <silent> <SID>(masquerade-Y) :<C-u>call masquerade#y('x', 'Y', {'keepunedited': 1})<CR>
+nnoremap <silent> <SID>(masquerade-d) :<C-u>call masquerade#d('n', 'd')<CR>
+xnoremap <silent> <SID>(masquerade-d) :<C-u>call masquerade#d('x', 'd')<CR>
+onoremap <SID>(masquerade-d) d
+nnoremap <silent> <SID>(masquerade-D) :<C-u>call masquerade#d('n', 'D', {'keepunedited': 1})<CR>
+xnoremap <silent> <SID>(masquerade-D) :<C-u>call masquerade#d('x', 'D', {'keepunedited': 1})<CR>
+nnoremap <silent> <SID>(masquerade-x) :<C-u>call masquerade#d('n', 'x')<CR>
+xnoremap <silent> <SID>(masquerade-x) :<C-u>call masquerade#d('x', 'x')<CR>
+nnoremap <silent> <SID>(masquerade-X) :<C-u>call masquerade#d('n', 'X', {'keepunedited': 1})<CR>
+xnoremap <silent> <SID>(masquerade-X) :<C-u>call masquerade#d('x', 'X', {'keepunedited': 1})<CR>
+nnoremap <silent> <SID>(masquerade-!) :<C-u>call masquerade#exclamation('n', '!')<CR>
+xnoremap <silent> <SID>(masquerade-!) :<C-u>call masquerade#exclamation('x', '!')<CR>
+onoremap <SID>(masquerade-!) !
+nnoremap <silent> <SID>(masquerade-p) :<C-u>call masquerade#p('n', 'p')<CR>
+xnoremap <silent> <SID>(masquerade-p) :<C-u>call masquerade#p('x', 'p')<CR>
+nnoremap <silent> <SID>(masquerade-P) :<C-u>call masquerade#p('n', 'P')<CR>
+xnoremap <silent> <SID>(masquerade-P) :<C-u>call masquerade#p('x', 'P')<CR>
+nnoremap <silent> <SID>(masquerade-gp) :<C-u>call masquerade#p('n', 'gp')<CR>
+xnoremap <silent> <SID>(masquerade-gp) :<C-u>call masquerade#p('x', 'gp')<CR>
+nnoremap <silent> <SID>(masquerade-gP) :<C-u>call masquerade#p('n', 'gP')<CR>
+xnoremap <silent> <SID>(masquerade-gP) :<C-u>call masquerade#p('x', 'gP')<CR>
+nnoremap <silent> <SID>(masquerade-i) :<C-u>call masquerade#i('n', 'i')<CR>
+xnoremap <silent> <SID>(masquerade-i) :<C-u>call masquerade#i('x', 'i')<CR>
+nnoremap <silent> <SID>(masquerade-I) :<C-u>call masquerade#i('n', 'i', {'fallback': 'I'})<CR>
+xnoremap <silent> <SID>(masquerade-I) :<C-u>call masquerade#i('x', 'i', {'fallback': 'I'})<CR>
+nnoremap <silent> <SID>(masquerade-a) :<C-u>call masquerade#a('n', 'a')<CR>
+xnoremap <silent> <SID>(masquerade-a) :<C-u>call masquerade#a('x', 'a')<CR>
+nnoremap <silent> <SID>(masquerade-A) :<C-u>call masquerade#a('n', 'a', {'fallback': 'A'})<CR>
+xnoremap <silent> <SID>(masquerade-A) :<C-u>call masquerade#a('x', 'a', {'fallback': 'A'})<CR>
+nnoremap <silent> <SID>(masquerade-c) :<C-u>call masquerade#c('n', 'c')<CR>
+xnoremap <silent> <SID>(masquerade-c) :<C-u>call masquerade#c('x', 'c')<CR>
+onoremap <SID>(masquerade-c) c
+nnoremap <silent> <SID>(masquerade-C) :<C-u>call masquerade#c('n', 'C', {'keepunedited': 1})<CR>
+xnoremap <silent> <SID>(masquerade-C) :<C-u>call masquerade#c('x', 'C', {'keepunedited': 1})<CR>
+nnoremap <silent> <SID>(masquerade-s) :<C-u>call masquerade#c('n', 's')<CR>
+xnoremap <silent> <SID>(masquerade-s) :<C-u>call masquerade#c('x', 's')<CR>
+nnoremap <silent> <SID>(masquerade-S) :<C-u>call masquerade#c('n', 'S', {'keepunedited': 1})<CR>
+xnoremap <silent> <SID>(masquerade-S) :<C-u>call masquerade#c('x', 'S', {'keepunedited': 1})<CR>
+
 function! s:defaultoperators() abort "{{{
 	noremap <Plug>(masquerade-g~) g~
 	noremap <Plug>(masquerade-~) ~
@@ -38,81 +115,50 @@ function! s:defaultoperators() abort "{{{
 endfunction "}}}
 
 function! s:readyformultiselect() abort "{{{
-	nnoremap <silent><expr> <Plug>(masquerade-g~) masquerade#edit('n', 'g~', {'useregister': 0})
-	xnoremap <silent><expr> <Plug>(masquerade-g~) masquerade#edit('x', 'g~', {'useregister': 0})
-	onoremap <Plug>(masquerade-g~) g~
-	nnoremap <silent><expr> <Plug>(masquerade-~) masquerade#edit('n', '~', {'useregister': 0})
-	xnoremap <silent><expr> <Plug>(masquerade-~) masquerade#edit('x', '~', {'useregister': 0})
-	onoremap <Plug>(masquerade-~) ~
-	nnoremap <silent><expr> <Plug>(masquerade-gu) masquerade#edit('n', 'gu', {'useregister': 0})
-	xnoremap <silent><expr> <Plug>(masquerade-gu) masquerade#edit('x', 'gu', {'useregister': 0})
-	onoremap <Plug>(masquerade-gu) gu
-	nnoremap <silent><expr> <Plug>(masquerade-gU) masquerade#edit('n', 'gU', {'useregister': 0})
-	xnoremap <silent><expr> <Plug>(masquerade-gU) masquerade#edit('x', 'gU', {'useregister': 0})
-	onoremap <Plug>(masquerade-gU) gU
-	nnoremap <silent><expr> <Plug>(masquerade-g?) masquerade#edit('n', 'g?', {'useregister': 0})
-	xnoremap <silent><expr> <Plug>(masquerade-g?) masquerade#edit('x', 'g?', {'useregister': 0})
-	onoremap <Plug>(masquerade-g?) g?
-	nnoremap <silent><expr> <Plug>(masquerade-gq) masquerade#edit('n', 'gq', {'useregister': 0})
-	xnoremap <silent><expr> <Plug>(masquerade-gq) masquerade#edit('x', 'gq', {'useregister': 0})
-	onoremap <Plug>(masquerade-gq) gq
-	nnoremap <silent><expr> <Plug>(masquerade-gw) masquerade#edit('n', 'gw', {'useregister': 0})
-	xnoremap <silent><expr> <Plug>(masquerade-gw) masquerade#edit('x', 'gw', {'useregister': 0})
-	onoremap <Plug>(masquerade-gw) gw
-	nnoremap <silent><expr> <Plug>(masquerade-=) masquerade#edit('n', '=', {'useregister': 0})
-	xnoremap <silent><expr> <Plug>(masquerade-=) masquerade#edit('x', '=', {'useregister': 0})
-	onoremap <Plug>(masquerade-=) =
-	nnoremap <silent><expr> <Plug>(masquerade-<) masquerade#edit('n', '<', {'usecount': 1, 'useregister': 0})
-	xnoremap <silent><expr> <Plug>(masquerade-<) masquerade#edit('x', '<', {'usecount': 1, 'useregister': 0})
-	onoremap <Plug>(masquerade-<) <
-	nnoremap <silent><expr> <Plug>(masquerade->) masquerade#edit('n', '>', {'usecount': 1, 'useregister': 0})
-	xnoremap <silent><expr> <Plug>(masquerade->) masquerade#edit('x', '>', {'usecount': 1, 'useregister': 0})
-	onoremap <Plug>(masquerade->) >
-	nnoremap <silent><expr> <Plug>(masquerade-y) masquerade#y('n', 'y')
-	xnoremap <silent><expr> <Plug>(masquerade-y) masquerade#y('x', 'y')
-	onoremap <Plug>(masquerade-y) y
-	nnoremap <silent><expr> <Plug>(masquerade-Y) masquerade#y('n', 'Y', {'keepunedited': 1})
-	xnoremap <silent><expr> <Plug>(masquerade-Y) masquerade#y('x', 'Y', {'keepunedited': 1})
-	nnoremap <silent><expr> <Plug>(masquerade-d) masquerade#d('n', 'd')
-	xnoremap <silent><expr> <Plug>(masquerade-d) masquerade#d('x', 'd')
-	onoremap <Plug>(masquerade-d) d
-	nnoremap <silent><expr> <Plug>(masquerade-D) masquerade#d('n', 'D', {'keepunedited': 1})
-	xnoremap <silent><expr> <Plug>(masquerade-D) masquerade#d('x', 'D', {'keepunedited': 1})
-	onoremap <Plug>(masquerade-D) D
-	nnoremap <silent><expr> <Plug>(masquerade-x) masquerade#d('n', 'x')
-	xnoremap <silent><expr> <Plug>(masquerade-x) masquerade#d('x', 'x')
-	onoremap <Plug>(masquerade-x) x
-	nnoremap <silent><expr> <Plug>(masquerade-X) masquerade#d('n', 'X', {'keepunedited': 1})
-	xnoremap <silent><expr> <Plug>(masquerade-X) masquerade#d('x', 'X', {'keepunedited': 1})
-	onoremap <Plug>(masquerade-X) X
-	nnoremap <silent><expr> <Plug>(masquerade-!) masquerade#exclamation('n', '!')
-	xnoremap <silent><expr> <Plug>(masquerade-!) masquerade#exclamation('x', '!')
-	onoremap <Plug>(masquerade-!) !
-	nnoremap <silent><expr> <Plug>(masquerade-p) masquerade#p('n', 'p')
-	xnoremap <silent><expr> <Plug>(masquerade-p) masquerade#p('x', 'p')
-	nnoremap <silent><expr> <Plug>(masquerade-P) masquerade#p('n', 'P')
-	xnoremap <silent><expr> <Plug>(masquerade-P) masquerade#p('x', 'P')
-	nnoremap <silent><expr> <Plug>(masquerade-gp) masquerade#p('n', 'gp')
-	xnoremap <silent><expr> <Plug>(masquerade-gp) masquerade#p('x', 'gp')
-	nnoremap <silent><expr> <Plug>(masquerade-gP) masquerade#p('n', 'gP')
-	xnoremap <silent><expr> <Plug>(masquerade-gP) masquerade#p('x', 'gP')
-	nnoremap <silent> <Plug>(masquerade-i) :<C-u>call masquerade#i('n', 'i')<CR>
-	xnoremap <silent> <Plug>(masquerade-i) <Esc>:call masquerade#i('x', 'i')<CR>
-	nnoremap <silent> <Plug>(masquerade-I) :<C-u>call masquerade#i('n', 'i', {'fallback': 'I'})<CR>
-	xnoremap <silent> <Plug>(masquerade-I) <Esc>:call masquerade#i('x', 'i', {'fallback': 'I'})<CR>
-	nnoremap <silent> <Plug>(masquerade-a) :<C-u>call masquerade#a('n', 'a')<CR>
-	xnoremap <silent> <Plug>(masquerade-a) <Esc>:call masquerade#a('x', 'a')<CR>
-	nnoremap <silent> <Plug>(masquerade-A) :<C-u>call masquerade#a('n', 'a', {'fallback': 'A'})<CR>
-	xnoremap <silent> <Plug>(masquerade-A) <Esc>:call masquerade#a('x', 'a', {'fallback': 'A'})<CR>
-	nnoremap <silent> <Plug>(masquerade-c) :<C-u>call masquerade#c('n', 'c')<CR>
-	xnoremap <silent> <Plug>(masquerade-c) <Esc>:call masquerade#c('x', 'c')<CR>
-	nnoremap <silent> <Plug>(masquerade-C) :<C-u>call masquerade#c('n', 'C', {'keepunedited': 1})<CR>
-	xnoremap <silent> <Plug>(masquerade-C) <Esc>:call masquerade#c('x', 'C', {'keepunedited': 1})<CR>
-	nnoremap <silent> <Plug>(masquerade-s) :<C-u>call masquerade#c('n', 's')<CR>
-	xnoremap <silent> <Plug>(masquerade-s) <Esc>:call masquerade#c('x', 's')<CR>
-	nnoremap <silent> <Plug>(masquerade-S) :<C-u>call masquerade#c('n', 'S', {'keepunedited': 1})<CR>
-	xnoremap <silent> <Plug>(masquerade-S) <Esc>:call masquerade#c('x', 'S', {'keepunedited': 1})<CR>
-	onoremap <Plug>(masquerade-c) c
+	map  <Plug>(masquerade-g~) <SID>(capture)<SID>(masquerade-g~)
+	map  <Plug>(masquerade-~)  <SID>(capture)<SID>(masquerade-~)
+	map  <Plug>(masquerade-gu) <SID>(capture)<SID>(masquerade-gu)
+	map  <Plug>(masquerade-gU) <SID>(capture)<SID>(masquerade-gU)
+	map  <Plug>(masquerade-g?) <SID>(capture)<SID>(masquerade-g?)
+	map  <Plug>(masquerade-gq) <SID>(capture)<SID>(masquerade-gq)
+	map  <Plug>(masquerade-gw) <SID>(capture)<SID>(masquerade-gw)
+	map  <Plug>(masquerade-=)  <SID>(capture)<SID>(masquerade-=)
+	map  <Plug>(masquerade-<)  <SID>(capture)<SID>(masquerade-<)
+	map  <Plug>(masquerade->)  <SID>(capture)<SID>(masquerade->)
+	map  <Plug>(masquerade-y)  <SID>(capture)<SID>(masquerade-y)
+	nmap <Plug>(masquerade-Y)  <SID>(capture)<SID>(masquerade-Y)
+	xmap <Plug>(masquerade-Y)  <SID>(capture)<SID>(masquerade-Y)
+	map  <Plug>(masquerade-d)  <SID>(capture)<SID>(masquerade-d)
+	nmap <Plug>(masquerade-D)  <SID>(capture)<SID>(masquerade-D)
+	xmap <Plug>(masquerade-D)  <SID>(capture)<SID>(masquerade-D)
+	nmap <Plug>(masquerade-x)  <SID>(capture)<SID>(masquerade-x)
+	xmap <Plug>(masquerade-x)  <SID>(capture)<SID>(masquerade-x)
+	nmap <Plug>(masquerade-X)  <SID>(capture)<SID>(masquerade-X)
+	xmap <Plug>(masquerade-X)  <SID>(capture)<SID>(masquerade-X)
+	map  <Plug>(masquerade-!)  <SID>(capture)<SID>(masquerade-!)
+	nmap <Plug>(masquerade-p)  <SID>(capture)<SID>(masquerade-p)
+	xmap <Plug>(masquerade-p)  <SID>(capture)<SID>(masquerade-p)
+	nmap <Plug>(masquerade-P)  <SID>(capture)<SID>(masquerade-P)
+	xmap <Plug>(masquerade-P)  <SID>(capture)<SID>(masquerade-P)
+	nmap <Plug>(masquerade-gp) <SID>(capture)<SID>(masquerade-gp)
+	xmap <Plug>(masquerade-gp) <SID>(capture)<SID>(masquerade-gp)
+	nmap <Plug>(masquerade-gP) <SID>(capture)<SID>(masquerade-gP)
+	xmap <Plug>(masquerade-gP) <SID>(capture)<SID>(masquerade-gP)
+	nmap <Plug>(masquerade-i)  <SID>(capture)<SID>(masquerade-i)
+	xmap <Plug>(masquerade-i)  <SID>(capture)<SID>(masquerade-i)
+	nmap <Plug>(masquerade-I)  <SID>(capture)<SID>(masquerade-I)
+	xmap <Plug>(masquerade-I)  <SID>(capture)<SID>(masquerade-I)
+	nmap <Plug>(masquerade-a)  <SID>(capture)<SID>(masquerade-a)
+	xmap <Plug>(masquerade-a)  <SID>(capture)<SID>(masquerade-a)
+	nmap <Plug>(masquerade-A)  <SID>(capture)<SID>(masquerade-A)
+	xmap <Plug>(masquerade-A)  <SID>(capture)<SID>(masquerade-A)
+	map  <Plug>(masquerade-c)  <SID>(capture)<SID>(masquerade-c)
+	nmap <Plug>(masquerade-C)  <SID>(capture)<SID>(masquerade-C)
+	xmap <Plug>(masquerade-C)  <SID>(capture)<SID>(masquerade-C)
+	nmap <Plug>(masquerade-s)  <SID>(capture)<SID>(masquerade-s)
+	xmap <Plug>(masquerade-s)  <SID>(capture)<SID>(masquerade-s)
+	nmap <Plug>(masquerade-S)  <SID>(capture)<SID>(masquerade-S)
+	xmap <Plug>(masquerade-S)  <SID>(capture)<SID>(masquerade-S)
 endfunction "}}}
 
 if exists('*multiselect#import')
