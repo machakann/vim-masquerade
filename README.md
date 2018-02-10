@@ -59,7 +59,8 @@ map < <Plug>(masquerade-<)
 map > <Plug>(masquerade->)
 
 map g~ <Plug>(masquerade-g~)
-map ~ <Plug>(masquerade-~)
+nmap ~ <Plug>(masquerade-~)
+xmap ~ <Plug>(masquerade-~)
 
 map gu <Plug>(masquerade-gu)
 map gU <Plug>(masquerade-gU)
