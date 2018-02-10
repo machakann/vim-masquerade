@@ -21,9 +21,32 @@ Describe Masquerade
 		set indentexpr=
 	End
 
-	Context d
-		It deletes texts characterwise
+	Context y
+		It fallbacks to the original operator if no multiselection
 			call s:setbuffer()
+			let @a= ''
+			call cursor(1, 1)
+			execute "normal \"a3\<Plug>(masquerade-y)iw"
+			Assert Equals(getline(1), 'Foo Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+			Assert Equals(getreg('a'), 'Foo Bar')
+			Assert Equals(getregtype('a'), 'v')
+
+			call s:setbuffer()
+			let @a= ''
+			call cursor(1, 1)
+			execute "normal viw\"a\<Plug>(masquerade-y)"
+			Assert Equals(getline(1), 'Foo Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+			Assert Equals(getreg('a'), 'Foo')
+			Assert Equals(getregtype('a'), 'v')
+		End
+
+		It yanks texts characterwise
+			call s:setbuffer()
+			let @a= ''
 			call cursor(1, 1)
 			normal! viw
 			execute "normal \<Plug>(multiselect-check)"
@@ -36,14 +59,17 @@ Describe Masquerade
 			normal! viw
 			execute "normal \<Plug>(multiselect-check)"
 
-			execute "normal \<Plug>(masquerade-d)"
-			Assert Equals(getline(1), ' Bar Baz')
-			Assert Equals(getline(2), 'Foo  Baz')
-			Assert Equals(getline(3), 'Foo Bar ')
+			execute "normal \"a\<Plug>(masquerade-y)"
+			Assert Equals(getline(1), 'Foo Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+			Assert Equals(getreg('a'), "Foo\nBar\nBaz")
+			Assert Equals(getregtype('a'), "\<C-v>3")
 		End
 
 		It deletes texts linewise
 			call s:setbuffer()
+			let @a= ''
 			call cursor(1, 5)
 			normal! V
 			execute "normal \<Plug>(multiselect-check)"
@@ -52,26 +78,129 @@ Describe Masquerade
 			normal! V
 			execute "normal \<Plug>(multiselect-check)"
 
-			execute "normal \<Plug>(masquerade-d)"
-			Assert Equals(line('$'), 1)
+			execute "normal \"a\<Plug>(masquerade-y)"
 			Assert Equals(getline(1), 'Foo Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+			Assert Equals(getreg('a'), "Foo Bar Baz\nFoo Bar Baz\n")
+			Assert Equals(getregtype('a'), 'V')
 		End
 
 		It deletes texts blockwise
 			call s:setbuffer()
+			let @a= ''
 			call cursor(1, 5)
 			execute "normal \<C-v>"
 			normal! 2j2l
 			execute "normal \<Plug>(multiselect-check)"
 
-			execute "normal \<Plug>(masquerade-d)"
+			execute "normal \"a\<Plug>(masquerade-y)"
+			Assert Equals(getline(1), 'Foo Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+			Assert Equals(getreg('a'), "Bar\nBar\nBar")
+			Assert Equals(getregtype('a'), "\<C-v>3")
+		End
+	End
+
+	Context d
+		It fallbacks to the original operator if no multiselection
+			call s:setbuffer()
+			let @a= ''
+			call cursor(1, 1)
+			execute "normal \"a3\<Plug>(masquerade-d)iw"
+			Assert Equals(getline(1), ' Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+			Assert Equals(getreg('a'), 'Foo Bar')
+			Assert Equals(getregtype('a'), 'v')
+
+			call s:setbuffer()
+			let @a= ''
+			call cursor(1, 1)
+			execute "normal viw\"a\<Plug>(masquerade-d)"
+			Assert Equals(getline(1), ' Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+			Assert Equals(getreg('a'), 'Foo')
+			Assert Equals(getregtype('a'), 'v')
+		End
+
+		It deletes texts characterwise
+			call s:setbuffer()
+			let @a= ''
+			call cursor(1, 1)
+			normal! viw
+			execute "normal \<Plug>(multiselect-check)"
+
+			call cursor(2, 5)
+			normal! viw
+			execute "normal \<Plug>(multiselect-check)"
+
+			call cursor(3, 9)
+			normal! viw
+			execute "normal \<Plug>(multiselect-check)"
+
+			execute "normal \"a\<Plug>(masquerade-d)"
+			Assert Equals(getline(1), ' Bar Baz')
+			Assert Equals(getline(2), 'Foo  Baz')
+			Assert Equals(getline(3), 'Foo Bar ')
+			Assert Equals(getreg('a'), "Foo\nBar\nBaz")
+			Assert Equals(getregtype('a'), "\<C-v>3")
+		End
+
+		It deletes texts linewise
+			call s:setbuffer()
+			let @a= ''
+			call cursor(1, 5)
+			normal! V
+			execute "normal \<Plug>(multiselect-check)"
+
+			call cursor(3, 5)
+			normal! V
+			execute "normal \<Plug>(multiselect-check)"
+
+			execute "normal \"a\<Plug>(masquerade-d)"
+			Assert Equals(line('$'), 1)
+			Assert Equals(getline(1), 'Foo Bar Baz')
+			Assert Equals(getreg('a'), "Foo Bar Baz\nFoo Bar Baz\n")
+			Assert Equals(getregtype('a'), 'V')
+		End
+
+		It deletes texts blockwise
+			call s:setbuffer()
+			let @a= ''
+			call cursor(1, 5)
+			execute "normal \<C-v>"
+			normal! 2j2l
+			execute "normal \<Plug>(multiselect-check)"
+
+			execute "normal \"a\<Plug>(masquerade-d)"
 			Assert Equals(getline(1), 'Foo  Baz')
 			Assert Equals(getline(2), 'Foo  Baz')
 			Assert Equals(getline(3), 'Foo  Baz')
+			Assert Equals(getreg('a'), "Bar\nBar\nBar")
+			Assert Equals(getregtype('a'), "\<C-v>3")
 		End
 	End
 
 	Context g~
+		It fallbacks to the original operator if no multiselection
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal 3\<Plug>(masquerade-g~)iw"
+			Assert Equals(getline(1), 'fOO bAR Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal viw\<Plug>(masquerade-g~)"
+			Assert Equals(getline(1), 'fOO Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+		End
+
 		It reverses upper/lower-cases of characterwise texts
 			call s:setbuffer()
 			call cursor(1, 1)
@@ -123,6 +252,22 @@ Describe Masquerade
 	End
 
 	Context gu
+		It fallbacks to the original operator if no multiselection
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal 3\<Plug>(masquerade-gu)iw"
+			Assert Equals(getline(1), 'foo bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal viw\<Plug>(masquerade-gu)"
+			Assert Equals(getline(1), 'foo Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+		End
+
 		It converts characterwise texts to lower-case
 			call s:setbuffer()
 			call cursor(1, 1)
@@ -174,6 +319,22 @@ Describe Masquerade
 	End
 
 	Context gU
+		It fallbacks to the original operator if no multiselection
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal 3\<Plug>(masquerade-gU)iw"
+			Assert Equals(getline(1), 'FOO BAR Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal viw\<Plug>(masquerade-gU)"
+			Assert Equals(getline(1), 'FOO Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+		End
+
 		It converts characterwise texts to upper-case
 			call s:setbuffer()
 			call cursor(1, 1)
@@ -225,6 +386,22 @@ Describe Masquerade
 	End
 
 	Context g?
+		It fallbacks to the original operator if no multiselection
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal 3\<Plug>(masquerade-g?)iw"
+			Assert Equals(getline(1), 'Sbb One Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal viw\<Plug>(masquerade-g?)"
+			Assert Equals(getline(1), 'Sbb Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+		End
+
 		It ROT13-encodes characterwise texts
 			call s:setbuffer()
 			call cursor(1, 1)
@@ -276,9 +453,31 @@ Describe Masquerade
 	End
 
 	Context gq
+		Before
+			set textwidth=8
+		End
+
+		It fallbacks to the original operator if no multiselection
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal 2\<Plug>(masquerade-gq)j"
+			Assert Equals(getline(1), 'Foo Bar')
+			Assert Equals(getline(2), 'Baz Foo')
+			Assert Equals(getline(3), 'Bar Baz')
+			Assert Equals(getline(4), 'Foo Bar')
+			Assert Equals(getline(5), 'Baz')
+
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal viw\<Plug>(masquerade-gq)"
+			Assert Equals(getline(1), 'Foo Bar')
+			Assert Equals(getline(2), 'Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+			Assert Equals(getline(4), 'Foo Bar Baz')
+		End
+
 		It re-formats lines of texts for characterwise selection
 			call s:setbuffer()
-			set textwidth=8
 			call cursor(1, 1)
 			normal! viw
 			execute "normal \<Plug>(multiselect-check)"
@@ -302,7 +501,6 @@ Describe Masquerade
 
 		It re-formats lines of texts for linewise selection
 			call s:setbuffer()
-			set textwidth=8
 			call cursor(1, 5)
 			normal! V
 			execute "normal \<Plug>(multiselect-check)"
@@ -321,7 +519,6 @@ Describe Masquerade
 
 		It re-formats lines of texts for blockwise selection
 			call s:setbuffer()
-			set textwidth=8
 			call cursor(1, 5)
 			execute "normal \<C-v>"
 			normal! 2j2l
@@ -333,13 +530,39 @@ Describe Masquerade
 			Assert Equals(getline(3), 'Bar Baz')
 			Assert Equals(getline(4), 'Foo Bar')
 			Assert Equals(getline(5), 'Baz')
+		End
+
+		After
+			set textwidth&
 		End
 	End
 
 	Context gw
+		Before
+			set textwidth=8
+		End
+
+		It fallbacks to the original operator if no multiselection
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal 2\<Plug>(masquerade-gw)j"
+			Assert Equals(getline(1), 'Foo Bar')
+			Assert Equals(getline(2), 'Baz Foo')
+			Assert Equals(getline(3), 'Bar Baz')
+			Assert Equals(getline(4), 'Foo Bar')
+			Assert Equals(getline(5), 'Baz')
+
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal viw\<Plug>(masquerade-gw)"
+			Assert Equals(getline(1), 'Foo Bar')
+			Assert Equals(getline(2), 'Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+			Assert Equals(getline(4), 'Foo Bar Baz')
+		End
+
 		It re-formats lines of texts for characterwise selection
 			call s:setbuffer()
-			set textwidth=8
 			call cursor(1, 1)
 			normal! viw
 			execute "normal \<Plug>(multiselect-check)"
@@ -363,7 +586,6 @@ Describe Masquerade
 
 		It re-formats lines of texts for linewise selection
 			call s:setbuffer()
-			set textwidth=8
 			call cursor(1, 5)
 			normal! V
 			execute "normal \<Plug>(multiselect-check)"
@@ -382,7 +604,6 @@ Describe Masquerade
 
 		It re-formats lines of texts for blockwise selection
 			call s:setbuffer()
-			set textwidth=8
 			call cursor(1, 5)
 			execute "normal \<C-v>"
 			normal! 2j2l
@@ -395,13 +616,36 @@ Describe Masquerade
 			Assert Equals(getline(4), 'Foo Bar')
 			Assert Equals(getline(5), 'Baz')
 		End
+
+		After
+			set textwidth&
+		End
 	End
 
 	Context =
-		It re-indents lines of texts for characterwise selection
-			call s:setbuffer()
+		Before
 			set expandtab tabstop=4 shiftwidth=4 softtabstop=4
 			set indentexpr=TestIndent()
+		End
+
+		It fallbacks to the original operator if no multiselection
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal 2\<Plug>(masquerade-=)j"
+			Assert Equals(getline(1), '    Foo Bar Baz')
+			Assert Equals(getline(2), '    Foo Bar Baz')
+			Assert Equals(getline(3), '    Foo Bar Baz')
+
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal viw\<Plug>(masquerade-=)"
+			Assert Equals(getline(1), '    Foo Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+		End
+
+		It re-indents lines of texts for characterwise selection
+			call s:setbuffer()
 			call cursor(1, 1)
 			normal! viw
 			execute "normal \<Plug>(multiselect-check)"
@@ -422,7 +666,6 @@ Describe Masquerade
 
 		It re-indents lines of texts for linewise selection
 			call s:setbuffer()
-			set textwidth=8
 			call cursor(1, 5)
 			normal! V
 			execute "normal \<Plug>(multiselect-check)"
@@ -449,21 +692,50 @@ Describe Masquerade
 			Assert Equals(getline(2), '    Foo Bar Baz')
 			Assert Equals(getline(3), '    Foo Bar Baz')
 		End
+
+		After
+			set expandtab& tabstop& shiftwidth& softtabstop&
+			set indentexpr=
+		End
 	End
 
 	Context <
+		Before
+			set expandtab tabstop=4 shiftwidth=4 softtabstop=4
+			set indentexpr=TestIndent()
+		End
+
+		It fallbacks to the original operator if no multiselection
+			call s:setbuffer()
+			1,3>
+			call cursor(1, 5)
+			execute "normal 2\<Plug>(masquerade-<)j"
+			Assert Equals(getline(1), 'Foo Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+
+			call s:setbuffer()
+			1,3>
+			1,3>
+			call cursor(1, 5)
+			execute "normal viw2\<Plug>(masquerade-<)"
+			Assert Equals(getline(1), 'Foo Bar Baz')
+			Assert Equals(getline(2), '        Foo Bar Baz')
+			Assert Equals(getline(3), '        Foo Bar Baz')
+		End
+
 		It decrements indents of lines for characterwise selection
 			call s:setbuffer()
 			1,3>
-			call cursor(1, 1)
+			call cursor(1, 5)
 			normal! viw
 			execute "normal \<Plug>(multiselect-check)"
 
-			call cursor(2, 5)
+			call cursor(2, 9)
 			normal! viw
 			execute "normal \<Plug>(multiselect-check)"
 
-			call cursor(3, 9)
+			call cursor(3, 13)
 			normal! viw
 			execute "normal \<Plug>(multiselect-check)"
 
@@ -506,9 +778,35 @@ Describe Masquerade
 			Assert Equals(getline(2), 'Foo Bar Baz')
 			Assert Equals(getline(3), 'Foo Bar Baz')
 		End
+
+		After
+			set expandtab& tabstop& shiftwidth& softtabstop&
+			set indentexpr=
+		End
 	End
 
 	Context >
+		Before
+			set expandtab tabstop=4 shiftwidth=4 softtabstop=4
+			set indentexpr=TestIndent()
+		End
+
+		It fallbacks to the original operator if no multiselection
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal 2\<Plug>(masquerade->)j"
+			Assert Equals(getline(1), '    Foo Bar Baz')
+			Assert Equals(getline(2), '    Foo Bar Baz')
+			Assert Equals(getline(3), '    Foo Bar Baz')
+
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal viw2\<Plug>(masquerade->)"
+			Assert Equals(getline(1), '        Foo Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+		End
+
 		It increments indents of lines for characterwise selection
 			call s:setbuffer()
 			call cursor(1, 1)
@@ -557,9 +855,34 @@ Describe Masquerade
 			Assert Equals(getline(2), '    Foo Bar Baz')
 			Assert Equals(getline(3), '    Foo Bar Baz')
 		End
+
+		After
+			set expandtab& tabstop& shiftwidth& softtabstop&
+			set indentexpr=
+		End
 	End
 
 	Context !
+		It fallbacks to the original operator if no multiselection
+			%delete
+			call append(0, ['3', '1', '2'])
+			$delete
+			call cursor(1, 1)
+			execute "normal 2\<Plug>(masquerade-!)jsort\<CR>"
+			Assert Equals(getline(1), '1')
+			Assert Equals(getline(2), '2')
+			Assert Equals(getline(3), '3')
+
+			%delete
+			call append(0, ['3', '1', '2'])
+			$delete
+			call cursor(1, 1)
+			execute "normal Vj\<Plug>(masquerade-!)sort\<CR>"
+			Assert Equals(getline(1), '1')
+			Assert Equals(getline(2), '3')
+			Assert Equals(getline(3), '2')
+		End
+
 		It filters lines of characterwise selection
 			%delete
 			call append(0, ['3', '1', '2'])
@@ -649,6 +972,24 @@ Describe Masquerade
 	End
 
 	Context p
+		It fallbacks to the original operator if no multiselection
+			call s:setbuffer()
+			call setreg('a', 'masquerade', 'v')
+			call cursor(1, 1)
+			execute "normal \"a2\<Plug>(masquerade-p)"
+			Assert Equals(getline(1), 'Fmasquerademasqueradeoo Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+
+			call s:setbuffer()
+			call setreg('a', 'masquerade', 'v')
+			call cursor(1, 1)
+			execute "normal viw\"a\<Plug>(masquerade-p)"
+			Assert Equals(getline(1), 'masquerade Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+		End
+
 		It pastes on characterwise texts
 			call s:setbuffer()
 			call setreg('a', 'masquerade', 'v')
@@ -701,6 +1042,195 @@ Describe Masquerade
 			Assert Equals(getline(2), 'Foo masquerade Baz')
 			Assert Equals(getline(3), 'Foo masquerade Baz')
 			Assert Equals(@a, 'masquerade')
+		End
+	End
+
+	Context i
+		It fallbacks to the original operator if no multiselection
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal 2\<Plug>(masquerade-i)masquerade\<Esc>"
+			Assert Equals(getline(1), 'masquerademasqueradeFoo Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+		End
+
+		It inserts texts to the heads of characterwise selections
+			call s:setbuffer()
+			call cursor(1, 1)
+			normal! viw
+			execute "normal \<Plug>(multiselect-check)"
+
+			call cursor(2, 5)
+			normal! viw
+			execute "normal \<Plug>(multiselect-check)"
+
+			call cursor(3, 9)
+			normal! viw
+			execute "normal \<Plug>(multiselect-check)"
+
+			execute "normal \<Plug>(masquerade-i)masquerade\<Esc>"
+			Assert Equals(getline(1), 'masqueradeFoo Bar Baz')
+			Assert Equals(getline(2), 'Foo masqueradeBar Baz')
+			Assert Equals(getline(3), 'Foo Bar masqueradeBaz')
+		End
+
+		It inserts texts to the heads of linewise selections
+			call s:setbuffer()
+			call cursor(1, 5)
+			normal! V
+			execute "normal \<Plug>(multiselect-check)"
+
+			call cursor(3, 5)
+			normal! V
+			execute "normal \<Plug>(multiselect-check)"
+
+			execute "normal \<Plug>(masquerade-i)masquerade\<Esc>"
+			Assert Equals(getline(1), 'masqueradeFoo Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'masqueradeFoo Bar Baz')
+		End
+
+		It inserts texts to the heads of blockwise selections
+			call s:setbuffer()
+			call cursor(1, 5)
+			execute "normal \<C-v>"
+			normal! 2j2l
+			execute "normal \<Plug>(multiselect-check)"
+
+			execute "normal \<Plug>(masquerade-i)masquerade\<Esc>"
+			Assert Equals(getline(1), 'Foo masqueradeBar Baz')
+			Assert Equals(getline(2), 'Foo masqueradeBar Baz')
+			Assert Equals(getline(3), 'Foo masqueradeBar Baz')
+		End
+	End
+
+	Context a
+		It fallbacks to the original operator if no multiselection
+			call s:setbuffer()
+			call cursor(1, 1)
+			execute "normal 2\<Plug>(masquerade-a)masquerade\<Esc>"
+			Assert Equals(getline(1), 'Fmasquerademasqueradeoo Bar Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+		End
+
+		It inserts texts to the tail of characterwise selections
+			call s:setbuffer()
+			call cursor(1, 1)
+			normal! viw
+			execute "normal \<Plug>(multiselect-check)"
+
+			call cursor(2, 5)
+			normal! viw
+			execute "normal \<Plug>(multiselect-check)"
+
+			call cursor(3, 9)
+			normal! viw
+			execute "normal \<Plug>(multiselect-check)"
+
+			execute "normal \<Plug>(masquerade-a)masquerade\<Esc>"
+			Assert Equals(getline(1), 'Foomasquerade Bar Baz')
+			Assert Equals(getline(2), 'Foo Barmasquerade Baz')
+			Assert Equals(getline(3), 'Foo Bar Bazmasquerade')
+		End
+
+		It inserts texts to the tail of linewise selections
+			call s:setbuffer()
+			call cursor(1, 5)
+			normal! V
+			execute "normal \<Plug>(multiselect-check)"
+
+			call cursor(3, 5)
+			normal! V
+			execute "normal \<Plug>(multiselect-check)"
+
+			execute "normal \<Plug>(masquerade-a)masquerade\<Esc>"
+			Assert Equals(getline(1), 'Foo Bar Bazmasquerade')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Bazmasquerade')
+		End
+
+		It inserts texts to the heads of blockwise selections
+			call s:setbuffer()
+			call cursor(1, 5)
+			execute "normal \<C-v>"
+			normal! 2j2l
+			execute "normal \<Plug>(multiselect-check)"
+
+			execute "normal \<Plug>(masquerade-a)masquerade\<Esc>"
+			Assert Equals(getline(1), 'Foo Barmasquerade Baz')
+			Assert Equals(getline(2), 'Foo Barmasquerade Baz')
+			Assert Equals(getline(3), 'Foo Barmasquerade Baz')
+		End
+	End
+
+	Context c
+		It fallbacks to the original operator if no multiselection
+			call s:setbuffer()
+			call cursor(1, 1)
+			let @a = ''
+			execute "normal \"a3\<Plug>(masquerade-c)iwmasquerade\<Esc>"
+			Assert Equals(getline(1), 'masquerade Baz')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'Foo Bar Baz')
+			Assert Equals(getreg('a'), 'Foo Bar')
+			Assert Equals(getregtype(), 'v')
+		End
+
+		It inserts texts of characterwise selections
+			call s:setbuffer()
+			call cursor(1, 1)
+			normal! viw
+			execute "normal \<Plug>(multiselect-check)"
+
+			call cursor(2, 5)
+			normal! viw
+			execute "normal \<Plug>(multiselect-check)"
+
+			call cursor(3, 9)
+			normal! viw
+			execute "normal \<Plug>(multiselect-check)"
+
+			execute "normal \"a\<Plug>(masquerade-c)masquerade\<Esc>"
+			Assert Equals(getline(1), 'masquerade Bar Baz')
+			Assert Equals(getline(2), 'Foo masquerade Baz')
+			Assert Equals(getline(3), 'Foo Bar masquerade')
+			Assert Equals(getreg('a'), "Foo\nBar\nBaz")
+			Assert Equals(getregtype('a'), "\<C-v>3")
+		End
+
+		It inserts texts of linewise selections
+			call s:setbuffer()
+			call cursor(1, 5)
+			normal! V
+			execute "normal \<Plug>(multiselect-check)"
+
+			call cursor(3, 5)
+			normal! V
+			execute "normal \<Plug>(multiselect-check)"
+
+			execute "normal \"a\<Plug>(masquerade-c)masquerade\<Esc>"
+			Assert Equals(getline(1), 'masquerade')
+			Assert Equals(getline(2), 'Foo Bar Baz')
+			Assert Equals(getline(3), 'masquerade')
+			Assert Equals(getreg('a'), "Foo Bar Baz\nFoo Bar Baz\n")
+			Assert Equals(getregtype('a'), 'V')
+		End
+
+		It change texts of blockwise selections
+			call s:setbuffer()
+			call cursor(1, 5)
+			execute "normal \<C-v>"
+			normal! 2j2l
+			execute "normal \<Plug>(multiselect-check)"
+
+			execute "normal \"a\<Plug>(masquerade-c)masquerade\<Esc>"
+			Assert Equals(getline(1), 'Foo masquerade Baz')
+			Assert Equals(getline(2), 'Foo masquerade Baz')
+			Assert Equals(getline(3), 'Foo masquerade Baz')
+			Assert Equals(getreg('a'), "Bar\nBar\nBar")
+			Assert Equals(getregtype('a'), "\<C-v>3")
 		End
 	End
 End
