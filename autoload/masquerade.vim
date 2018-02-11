@@ -97,6 +97,7 @@ let s:MasqueradeEditor = {
 	\	'view': {},
 	\	'highlight': s:HIDURATION,
 	\	'remap': s:FALSE,
+	\	'remapfallback': s:FALSE,
 	\	'keepcurpos': s:TRUE,
 	\	'keepothers': s:FALSE,
 	\	'usecount': s:FALSE,

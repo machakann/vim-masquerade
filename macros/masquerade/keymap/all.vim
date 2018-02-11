@@ -1,5 +1,4 @@
-nmap y <Plug>(masquerade-y)
-xmap y <Plug>(masquerade-y)
+map y <Plug>(masquerade-y)
 
 nmap Y <Plug>(masquerade-Y)
 xmap Y <Plug>(masquerade-Y)
