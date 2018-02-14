@@ -1,5 +1,5 @@
 *masquerade.txt*	Tools to edit multiple selections
-						Last change:04-Feb-2018.
+						Last change:14-Feb-2018.
 
 Author  : machakann <https://github.com/machakann>
 License : MIT license
@@ -102,22 +102,24 @@ are the exceptions.
 	only |characterwise| and |blockwise-visual| selections, the yanked
 	texts are assembled into a blockwise text to save the given register.
 	If at least one |linewise| text is included, those texts are saved as
-	a |linewise| text. If there are no selections in the current buffer,
-	it fallbacks to the original command. See |y| and |Y|.
+	a |linewise| text.
 >
 		map y <Plug>(masquerade-y)
 		nmap Y <Plug>(masquerade-Y)
 		xmap Y <Plug>(masquerade-Y)
 <
+	If there are no selections in the current buffer, these keymappings
+	fallback to
+	|<Plug>(masquerade-fallback-y)| and |<Plug>(masquerade-fallback-Y)|,
+	which behave as |y| and |Y|, respectively.
+
 
 
 ["x]<Plug>(masquerade-d)		*<Plug>(masquerade-d)*
 ["x]<Plug>(masquerade-D)		*<Plug>(masquerade-D)*
 ["x]<Plug>(masquerade-x)		*<Plug>(masquerade-x)*
 ["x]<Plug>(masquerade-X)		*<Plug>(masquerade-X)*
-	These keymappings deletes multi-selected regions. If there are no
-	selections in the current buffer, it fallbacks to the original
-	command. See |d|, |D|, |x| and |X|.
+	These keymappings deletes multi-selected regions.
 >
 		map d <Plug>(masquerade-d)
 		nmap D <Plug>(masquerade-D)
@@ -127,6 +129,12 @@ are the exceptions.
 		nmap X <Plug>(masquerade-X)
 		xmap X <Plug>(masquerade-X)
 <
+	If there are no selections in the current buffer, these keymappings
+	fallback to
+	|<Plug>(masquerade-fallback-d)|, |<Plug>(masquerade-fallback-D)|,
+	|<Plug>(masquerade-fallback-x)|, and |<Plug>(masquerade-fallback-X)|
+	which behave as |d|, |D|, |x| and |X|, respectively.
+
 	The deleted texts are handled like |<Plug>(masquerade-y)|.
 
 
@@ -135,10 +143,7 @@ are the exceptions.
 ["x]<Plug>(masquerade-C)		*<Plug>(masquerade-C)*
 ["x]<Plug>(masquerade-s)		*<Plug>(masquerade-s)*
 ["x]<Plug>(masquerade-S)		*<Plug>(masquerade-S)*
-	These keymappings change texts in multi-selected regions. If there are
-	no selections in the current buffer, it fallbacks to the original
-	command. The cursor will be moved to the last one in the all items.
-	 See |c|, |C|, |s| and |S|.
+	These keymappings change texts in multi-selected regions.
 
 	NOTE: These commands move cursor to the last multiselect item.
 >
@@ -148,6 +153,12 @@ are the exceptions.
 		nmap s <Plug>(masquerade-s)
 		xmap s <Plug>(masquerade-s)
 <
+	If there are no selections in the current buffer, these keymappings
+	fallback to
+	|<Plug>(masquerade-fallback-c)|, |<Plug>(masquerade-fallback-C)|,
+	|<Plug>(masquerade-fallback-s)|, and |<Plug>(masquerade-fallback-S)|
+	which behave as |c|, |C|, |s| and |S|, respectively.
+
 	The deleted texts are handled like |<Plug>(masquerade-y)|.
 
 
@@ -156,9 +167,7 @@ are the exceptions.
 ["x]<Plug>(masquerade-P)		*<Plug>(masquerade-P)*
 ["x]<Plug>(masquerade-gp)		*<Plug>(masquerade-gp)*
 ["x]<Plug>(masquerade-gP)		*<Plug>(masquerade-gP)*
-	These keymappings paste a text into multi-selected regions. If there
-	are no selections in the current buffer, it fallbacks to the original
-	command. See |p|, |P|, |gp| and |gP|.
+	These keymappings paste a text into multi-selected regions.
 >
 		nmap p <Plug>(masquerade-p)
 		xmap p <Plug>(masquerade-p)
@@ -170,6 +179,12 @@ are the exceptions.
 	As different from the original commands, the given register is
 	restored after all operation.
 
+	If there are no selections in the current buffer, these keymappings
+	fallback to
+	|<Plug>(masquerade-fallback-p)|, |<Plug>(masquerade-fallback-P)|,
+	|<Plug>(masquerade-fallback-gp)| and |<Plug>(masquerade-fallback-gP)|,
+	which behave as |p|, |P|, |gp| and |gP|, respectively.
+
 
 
 [count]<Plug>(masquerade-i)		*<Plug>(masquerade-i)*
@@ -177,8 +192,7 @@ are the exceptions.
 [count]<Plug>(masquerade-a)		*<Plug>(masquerade-a)*
 [count]<Plug>(masquerade-A)		*<Plug>(masquerade-A)*
 	These keymappings insert a text into the head/tail of multi-selected
-	regions. If there are no selections in the current buffer, it
-	fallbacks to the original command. See |i|, |I|, |a| and |A|.
+	regions.
 
 	NOTE: These commands move cursor to the last multiselect item.
 >
@@ -187,76 +201,141 @@ are the exceptions.
 		nmap a <Plug>(masquerade-a)
 		xmap A <Plug>(masquerade-a)
 <
+	If there are no selections in the current buffer, these keymappings
+	fallback to
+	|<Plug>(masquerade-fallback-i)|, |<Plug>(masquerade-fallback-I)|,
+	|<Plug>(masquerade-fallback-a)|, and |<Plug>(masquerade-fallback-A)|,
+	, which behave as |i|, |I|, |a| and |A|, respectively.
+
 
 
 [count]<Plug>(masquerade-<)		*<Plug>(masquerade-<)*
 [count]<Plug>(masquerade->)		*<Plug>(masquerade->)*
-	These keymappings dedent/indent lines of multi-selected regions. If
-	there are no selections in the current buffer, it fallbacks to the
-	original command. See |<| and |>|.
+	These keymappings dedent/indent lines of multi-selected regions.
 >
 		map < <Plug>(masquerade-<)
 		map > <Plug>(masquerade->)
 <
+	If there are no selections in the current buffer, these keymappings
+	fallbacks to
+	|<Plug>(masquerade-fallback-<)| and |<Plug>(masquerade-fallback->)|,
+	which behave as |<| and |>|, respectively.
+
 
 
 <Plug>(masquerade-g~)			*<Plug>(masquerade-g~)*
 <Plug>(masquerade-~)			*<Plug>(masquerade-~)*
-	These keymappings switch case of multi-selected regions. If there are
-	no selections in the current buffer, it fallbacks to the original
-	command. See |g~| and |~|.
+	These keymappings switch case of multi-selected regions.
 >
 		map g~ <Plug>(masquerade-g~)
 		map ~ <Plug>(masquerade-~)
 <
+	If there are no selections in the current buffer, these keymappings
+	fallback to
+	|<Plug>(masquerade-fallback-g~)| and |<Plug>(masquerade-fallback-~)|,
+	which behave as |g~| and |~|, respectively.
+
 
 
 <Plug>(masquerade-gu)			*<Plug>(masquerade-gu)*
 <Plug>(masquerade-gU)			*<Plug>(masquerade-gU)*
 	These keymappings make multi-selected regions lower/upper case.
-	If there are no selections in the current buffer, it fallbacks to the
-	original command. See |gu| and |gU|.
 >
 		map gu <Plug>(masquerade-gu)
 		map gU <Plug>(masquerade-gU)
 <
+	If there are no selections in the current buffer, these keymappings
+	fallback to
+	|<Plug>(masquerade-fallback-gu)| and |<Plug>(masquerade-fallback-gU)|,
+	which behave as |gu| and |gU|, respectively.
+
 
 
 <Plug>(masquerade-g?)			*<Plug>(masquerade-g?)*
-	This keymapping Rot13 encodes multi-selected regions. If there are no
-	selections in the current buffer, it fallbacks to the original
-	command. See |g?|.
+	This keymapping Rot13 encodes multi-selected regions.
 >
 		map g? <Plug>(masquerade-g?)
 <
+	If there are no selections in the current buffer, it fallbacks to
+	|<Plug>(masquerade-fallback-g?)| which behaves as |g?|.
+
 
 
 <Plug>(masquerade-gq)			*<Plug>(masquerade-gq)*
 <Plug>(masquerade-gw)			*<Plug>(masquerade-gw)*
-	This keymapping formats lines of multi-selected regions. If there are
-	no selections in the current buffer, it fallbacks to the original
-	command. See |gq| and |gw|.
+	This keymapping formats lines of multi-selected regions.
 >
 		map gq <Plug>(masquerade-gq)
 		map gw <Plug>(masquerade-gw)
 <
+	If there are no selections in the current buffer, these keymappings
+	fallback to
+	|<Plug>(masquerade-fallback-gq)| and |<Plug>(masquerade-fallback-gw)|,
+	which behave as |gq| and |gw|, respectively.
+
 
 
 <Plug>(masquerade-=)			*<Plug>(masquerade-=)*
 	This keymapping filters lines of multi-selected regions through the
-	external program given with 'equalprg'. If there are no selections in
-	the current buffer, it fallbacks to the original command. See |=|.
+	external program given with 'equalprg'.
 >
 		map = <Plug>(masquerade-=)
 <
+	If there are no selections in the current buffer, it fallbacks to
+	|<Plug>(masquerade-fallback-=)| which behaves as |=|.
 
 
-<Plug>(masquerade-!){filter}			*<Plug>(masquerade-!)*
+
+<Plug>(masquerade-!){filter}		*<Plug>(masquerade-!)*
 	This keymapping filters lines of multi-selected regions through the
-	external program {filter}. If there are no selections in the current
-	buffer, it fallbacks to the original command. See |!|.
+	external program {filter}.
 >
 		map ! <Plug>(masquerade-!)
+<
+	If there are no selections in the current buffer, it fallbacks to
+	|<Plug>(masquerade-fallback-!)| which behaves as |!|.
+
+
+Fallback keymappings~
+<Plug>(masquerade-fallback-y)		*<Plug>(masquerade-fallback-y)*
+<Plug>(masquerade-fallback-Y)		*<Plug>(masquerade-fallback-Y)*
+<Plug>(masquerade-fallback-d)		*<Plug>(masquerade-fallback-d)*
+<Plug>(masquerade-fallback-D)		*<Plug>(masquerade-fallback-D)*
+<Plug>(masquerade-fallback-x)		*<Plug>(masquerade-fallback-x)*
+<Plug>(masquerade-fallback-X)		*<Plug>(masquerade-fallback-X)*
+<Plug>(masquerade-fallback-c)		*<Plug>(masquerade-fallback-c)*
+<Plug>(masquerade-fallback-C)		*<Plug>(masquerade-fallback-C)*
+<Plug>(masquerade-fallback-s)		*<Plug>(masquerade-fallback-s)*
+<Plug>(masquerade-fallback-S)		*<Plug>(masquerade-fallback-S)*
+<Plug>(masquerade-fallback-p)		*<Plug>(masquerade-fallback-p)*
+<Plug>(masquerade-fallback-P)		*<Plug>(masquerade-fallback-P)*
+<Plug>(masquerade-fallback-gp)		*<Plug>(masquerade-fallback-gp)*
+<Plug>(masquerade-fallback-gP)		*<Plug>(masquerade-fallback-gP)*
+<Plug>(masquerade-fallback-i)		*<Plug>(masquerade-fallback-i)*
+<Plug>(masquerade-fallback-I)		*<Plug>(masquerade-fallback-I)*
+<Plug>(masquerade-fallback-a)		*<Plug>(masquerade-fallback-a)*
+<Plug>(masquerade-fallback-A)		*<Plug>(masquerade-fallback-A)*
+<Plug>(masquerade-fallback-<)		*<Plug>(masquerade-fallback-<)*
+<Plug>(masquerade-fallback->)		*<Plug>(masquerade-fallback->)*
+<Plug>(masquerade-fallback-g~)		*<Plug>(masquerade-fallback-g~)*
+<Plug>(masquerade-fallback-~)		*<Plug>(masquerade-fallback-~)*
+<Plug>(masquerade-fallback-gu)		*<Plug>(masquerade-fallback-gu)*
+<Plug>(masquerade-fallback-gU)		*<Plug>(masquerade-fallback-gU)*
+<Plug>(masquerade-fallback-g?)		*<Plug>(masquerade-fallback-g?)*
+<Plug>(masquerade-fallback-gq)		*<Plug>(masquerade-fallback-gq)*
+<Plug>(masquerade-fallback-gw)		*<Plug>(masquerade-fallback-gw)*
+<Plug>(masquerade-fallback-=)		*<Plug>(masquerade-fallback-=)*
+<Plug>(masquerade-fallback-!)		*<Plug>(masquerade-fallback-!)*
+	If there was no multiselection, masquerade-keymappings fallback to
+	these keymappings. Each keymapping is equal to the original keymapping
+	in default.
+>
+	noremap <Plug>(masquerade-fallback-y) y
+<
+	Those keymappings are useful when you want to change the behavior of
+	the fallback key.
+>
+	nnoremap <Plug>(masquerade-fallback-Y) y$
 <
 
 
