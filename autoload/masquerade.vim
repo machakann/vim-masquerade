@@ -75,11 +75,8 @@ function! masquerade#edit(mode, cmd, ...) abort "{{{
 	call extend(options, get(a:000, 0, {}), 'force')
 	let msqrd = options.Constructor(a:mode, a:cmd)
 	call msqrd.initialize(options)
-	if s:ms.isempty()
-		call msqrd._fallbackkeys()
-		return
-	endif
-	call msqrd.start()
+	let args = msqrd.start()
+	call call('feedkeys', args)
 endfunction "}}}
 
 " MasqueradeEditor class{{{
@@ -116,12 +113,6 @@ function! s:MasqueradeEditor(mode, cmd) abort "{{{
 	return masquerade
 endfunction "}}}
 
-function! s:MasqueradeEditor.start() abort "{{{
-	let g:masquerade#__CURRENT__ = self
-	let &operatorfunc = s:OPERATORFUNC
-	call self._startkeys()
-endfunction "}}}
-
 function! s:MasqueradeEditor.initialize(...) abort "{{{
 	let options = get(a:000, 0, {})
 	let self.fallback = get(options, 'fallback', self.cmd)
@@ -137,6 +128,17 @@ function! s:MasqueradeEditor.initialize(...) abort "{{{
 	call self._setboolopt(options, 'usecount')
 	call self._setboolopt(options, 'useregister')
 	let self.remapfallback = get(options, 'remapfallback', self.remap)
+endfunction "}}}
+
+function! s:MasqueradeEditor.start() abort "{{{
+	if !s:ms.isempty()
+		let &operatorfunc = s:OPERATORFUNC
+		let g:masquerade#__CURRENT__ = self
+		let args = self._startkeys()
+	else
+		let args = self._fallbackkeys()
+	endif
+	return args
 endfunction "}}}
 
 function! s:MasqueradeEditor.update() abort "{{{
@@ -300,7 +302,7 @@ function! s:MasqueradeEditor._fallbackkeys() abort "{{{
 		let keyseq .= self.fallback
 		let flag = 'in'
 	endif
-	call feedkeys(keyseq, flag)
+	return [keyseq, flag]
 endfunction "}}}
 
 function! s:MasqueradeEditor._startkeys() abort "{{{
@@ -338,7 +340,7 @@ function! s:MasqueradeEditor._startkeys() abort "{{{
 		endif
 		let flag = 'in'
 	endif
-	call feedkeys(keyseq, flag)
+	return [keyseq, flag]
 endfunction "}}}
 
 function! s:MasqueradeEditor._docmd() abort "{{{
@@ -572,21 +574,9 @@ lockvar! s:MasqueradeD
 
 " !
 function! masquerade#exclamation(mode, cmd, ...) abort "{{{
-	let options = {
-		\ 'keepothers': g:masquerade#keepothers,
-		\ 'highlight': g:masquerade#highlight,
-		\ }
-	call extend(options, get(a:000, 0, {}), 'force')
-	let msqrd = s:MasqueradeExclamation(a:mode, a:cmd)
-	call msqrd.initialize(options)
-	if s:ms.isempty()
-		call msqrd._fallbackkeys()
-		return
-	endif
-	let inputlist = s:setfiltercmdhist()
-	let msqrd.shellcmd = input('!', '', 'shellcmd')
-	call s:restorecmdhist('input', inputlist)
-	call msqrd.start()
+	let options = get(a:000, 0, {})
+	let options.Constructor = function('s:MasqueradeExclamation')
+	return masquerade#edit(a:mode, a:cmd, options)
 endfunction "}}}
 
 " MasqueradeExclamation class{{{
@@ -599,6 +589,20 @@ function! s:MasqueradeExclamation(mode, cmd) abort "{{{
 	let exclamation = deepcopy(s:MasqueradeExclamation)
 	let editor = s:MasqueradeEditor(a:mode, a:cmd)
 	return s:ClassSys.inherit(exclamation, editor)
+endfunction "}}}
+
+function! s:MasqueradeExclamation.start() abort "{{{
+	if !s:ms.isempty()
+		let inputlist = s:setfiltercmdhist()
+		let self.shellcmd = input('!', '', 'shellcmd')
+		call s:restorecmdhist('input', inputlist)
+		let &operatorfunc = s:OPERATORFUNC
+		let g:masquerade#__CURRENT__ = self
+		let args = self._startkeys()
+	else
+		let args = self._fallbackkeys()
+	endif
+	return args
 endfunction "}}}
 
 function! s:MasqueradeExclamation.do(item, _) dict abort "{{{
@@ -721,36 +725,21 @@ lockvar! s:MasqueradeP
 
 " i, a, c
 function! masquerade#i(mode, cmd, ...) abort "{{{
-	let options = {
-		\ 'keepothers': g:masquerade#keepothers,
-		\ 'highlight': g:masquerade#highlight,
-		\ }
-	call extend(options, get(a:000, 0, {}), 'force')
-	let i = s:MasqueradeI(a:mode, a:cmd)
-	call i.initialize(options)
-	call i.start()
+	let options = get(a:000, 0, {})
+	let options.Constructor = function('s:MasqueradeI')
+	call masquerade#edit(a:mode, a:cmd, options)
 endfunction "}}}
 
 function! masquerade#a(mode, cmd, ...) abort "{{{
-	let options = {
-		\ 'keepothers': g:masquerade#keepothers,
-		\ 'highlight': g:masquerade#highlight,
-		\ }
-	call extend(options, get(a:000, 0, {}), 'force')
-	let a = s:MasqueradeA(a:mode, a:cmd)
-	call a.initialize(options)
-	call a.start()
+	let options = get(a:000, 0, {})
+	let options.Constructor = function('s:MasqueradeA')
+	call masquerade#edit(a:mode, a:cmd, options)
 endfunction "}}}
 
 function! masquerade#c(mode, cmd, ...) abort "{{{
-	let options = {
-		\ 'keepothers': g:masquerade#keepothers,
-		\ 'highlight': g:masquerade#highlight,
-		\ }
-	call extend(options, get(a:000, 0, {}), 'force')
-	let c = s:MasqueradeC(a:mode, a:cmd)
-	call c.initialize(options)
-	call c.start()
+	let options = get(a:000, 0, {})
+	let options.Constructor = function('s:MasqueradeC')
+	call masquerade#edit(a:mode, a:cmd, options)
 endfunction "}}}
 
 " MasqueradeInsert class{{{
@@ -767,15 +756,13 @@ endfunction "}}}
 
 function! s:MasqueradeInsert.start() abort "{{{
 	if s:ms.isempty()
-		call self._fallbackkeys()
-		return
+		return self._fallbackkeys()
 	endif
 
 	call s:ClassSys.super(self, 'MasqueradeEditor').update()
 	let firsttarget = self.lastitem()
 	if empty(firsttarget)
-		call self._fallbackkeys()
-		return
+		return self._fallbackkeys()
 	endif
 
 	let self._change = s:Multiselect.Change()
@@ -787,8 +774,10 @@ function! s:MasqueradeInsert.start() abort "{{{
 					 \.repeat(1)
 					 \.start('InsertLeave')
 
+	let &operatorfunc = s:OPERATORFUNC
+	let g:masquerade#__CURRENT__ = self
 	call self.aim(firsttarget)
-	call s:ClassSys.super(self, 'MasqueradeEditor').start()
+	return self._startkeys()
 endfunction "}}}
 
 function! s:MasqueradeInsert.lastitem() abort "{{{
@@ -802,10 +791,10 @@ function! s:MasqueradeInsert.lastitem() abort "{{{
 		endif
 	endif
 	let itemlist = s:ms.enumerate()
-	call s:ms.sort(itemlist)
 	if empty(itemlist)
 		return {}
 	endif
+	call s:ms.sort(itemlist)
 	let [i, firsttarget] = itemlist[-1]
 	call s:ms.remove(i)
 	if firsttarget.type is# 'line'
@@ -862,7 +851,7 @@ function! s:MasqueradeInsert._startkeys() abort "{{{
 		let flag = 'in'
 	endif
 	let keyseq .= self.cmd
-	call feedkeys(keyseq, flag)
+	return [keyseq, flag]
 endfunction "}}}
 
 function! s:MasqueradeInsert._hiitem(item) abort "{{{
