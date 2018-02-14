@@ -766,12 +766,12 @@ function! s:MasqueradeInsert() abort "{{{
 endfunction "}}}
 
 function! s:MasqueradeInsert.start() abort "{{{
-	call s:ClassSys.super(self, 'MasqueradeEditor').update()
 	if s:ms.isempty()
 		call self._fallbackkeys()
 		return
 	endif
 
+	call s:ClassSys.super(self, 'MasqueradeEditor').update()
 	let firsttarget = self.lastitem()
 	if empty(firsttarget)
 		call self._fallbackkeys()
