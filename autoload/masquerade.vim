@@ -1,7 +1,6 @@
 " masquerade.vim - Tools to edit multiple selections
 let s:ClassSys = masquerade#ClassSys#_import()
 let s:Multiselect = multiselect#import()
-let s:timer = s:Multiselect.TimerTask()
 let s:ms = s:Multiselect.load()
 let s:shiftenv = s:Multiselect.shiftenv
 let s:restoreenv = s:Multiselect.restoreenv
@@ -241,12 +240,12 @@ function! s:MasqueradeEditor.finish(env) abort "{{{
 
 	call filter(self._hiitemlist, '!empty(v:val)')
 	if self.highlight > 0 && !empty(self._hiitemlist)
-		let racetask = s:Multiselect.RaceTask().repeat(1)
+		let task = s:Multiselect.Task()
 		for hiitem in self._hiitemlist
-			call racetask.call(hiitem.quench, [], hiitem)
+			call task.call(hiitem.quench, [], hiitem)
 		endfor
 		if self.TextChanged is s:TRUE
-			call racetask.skip(1)  " skip the next TextChanged event
+			call task.skip(1)  " skip the next TextChanged event
 		endif
 
 		" NOTE: This is a hack for cmdline-window
@@ -254,15 +253,15 @@ function! s:MasqueradeEditor.finish(env) abort "{{{
 		" it cannot be removed. Thus using TaskChain to remove it
 		" when coming back to the original buffer
 		let taskchain = s:Multiselect.TaskChain()
-		call taskchain.event('CmdwinEnter').call(racetask.stop, [], racetask)
-		call taskchain.event('CmdwinLeave')
-		call taskchain.timer(100).call(racetask.trigger, [s:TRUE], racetask)
-		call taskchain.start()
+		call taskchain.hook(['CmdwinEnter']).call(task.cancel, [], task)
+		call taskchain.hook(['CmdwinLeave'])
+		call taskchain.hook([100]).call(task.trigger, [s:TRUE], task)
+		call taskchain.waitfor()
 
 		" NOTE: If everything goes on normally, the taskchain is abandoned
-		call racetask.call(taskchain.stop, [], taskchain)
-		call racetask.start([self.highlight, 'InsertEnter', 'TextChanged',
-							\'BufLeave', 'TabLeave'])
+		call task.call(taskchain.cancel, [], taskchain)
+		call task.waitfor([self.highlight, 'InsertEnter', 'TextChanged',
+						\'BufLeave', 'TabLeave'])
 	endif
 
 	if self.keepothers is s:TRUE && !empty(self._otheritems)
@@ -769,10 +768,9 @@ function! s:MasqueradeInsert.start() abort "{{{
 	call self._change.beforedelete(firsttarget)
 
 	call s:ms.event('InsertEnter').skip(1)
-	call s:Multiselect.EventTask()
+	call s:Multiselect.Task()
 					 \.call(function('s:InsertLeave'), [])
-					 \.repeat(1)
-					 \.start('InsertLeave')
+					 \.waitfor(['InsertLeave'])
 
 	let &operatorfunc = s:OPERATORFUNC
 	let g:masquerade#__CURRENT__ = self
